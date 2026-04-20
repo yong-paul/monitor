@@ -1,0 +1,3 @@
+
+flask&gt;=2.0.0
+redis&gt;=4.0.0
