@@ -107,6 +107,40 @@
         }
         .message-field-label { color: #666; font-size: 0.75rem; }
         .message-field-value { font-weight: 500; }
+        
+        /* 左右分栏布局 */
+        .split-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .column-buy {
+            border-left: 4px solid #ef4444;
+        }
+        .column-sell {
+            border-left: 4px solid #10b981;
+        }
+        .column-header {
+            padding: 10px 15px;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            border-radius: 0 4px 4px 0;
+        }
+        .column-header.buy {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        .column-header.sell {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        .column-empty {
+            text-align: center;
+            color: #999;
+            padding: 30px;
+            font-size: 0.9rem;
+        }
         .trade-table { width: 100%; border-collapse: collapse; }
         .trade-table th, .trade-table td {
             padding: 12px; text-align: left;
@@ -285,7 +319,43 @@
             return groups;
         }
 
-        // 渲染消息列表（按日期分组）
+        // 渲染消息字段
+        function renderMessageFields(msg) {
+            let fieldsHtml = '';
+            if (msg.data) {
+                const fieldOrder = ['time', 'action', 'code', 'price', 'pct', 'strategy', 'cancel_order'];
+                const orderedFields = [];
+                const otherFields = [];
+                
+                Object.keys(msg.data).forEach(key => {
+                    if (fieldOrder.includes(key)) {
+                        orderedFields.push(key);
+                    } else {
+                        otherFields.push(key);
+                    }
+                });
+                orderedFields.sort((a, b) => fieldOrder.indexOf(a) - fieldOrder.indexOf(b));
+                
+                [...orderedFields, ...otherFields].forEach(key => {
+                    let value = msg.data[key];
+                    let extraClass = '';
+                    
+                    if (key === 'action') {
+                        extraClass = value === 'BUY' ? 'action-buy' : (value === 'SELL' ? 'action-sell' : '');
+                    }
+                    
+                    fieldsHtml += `
+                        <div class="message-field">
+                            <div class="message-field-label">${key}</div>
+                            <div class="message-field-value ${extraClass}">${value}</div>
+                        </div>
+                    `;
+                });
+            }
+            return fieldsHtml;
+        }
+
+        // 渲染消息列表（按日期分组 + 买卖分栏）
         function renderMessageList(streamData, filterDate = '') {
             const messageList = document.getElementById('message-list');
             if (!streamData.messages || streamData.messages.length === 0) {
@@ -318,56 +388,67 @@
             let html = '';
             filteredDates.forEach(date => {
                 const msgs = groups[date];
+                
+                // 按买卖类型分类
+                const buyMsgs = msgs.filter(m => m.data && m.data.action === 'BUY');
+                const sellMsgs = msgs.filter(m => m.data && m.data.action === 'SELL');
+                const otherMsgs = msgs.filter(m => !m.data || !['BUY', 'SELL'].includes(m.data.action));
+                
                 html += `
                     <div class="date-group">
                         <div class="date-group-header">${date} (${msgs.length}条消息)</div>
-                `;
-                msgs.forEach((msg, idx) => {
-                    // 渲染消息字段
-                    let fieldsHtml = '';
-                    if (msg.data) {
-                        const fieldOrder = ['time', 'action', 'code', 'price', 'pct', 'strategy', 'cancel_order'];
-                        const orderedFields = [];
-                        const otherFields = [];
-                        
-                        Object.keys(msg.data).forEach(key => {
-                            if (fieldOrder.includes(key)) {
-                                orderedFields.push(key);
-                            } else {
-                                otherFields.push(key);
-                            }
-                        });
-                        orderedFields.sort((a, b) => fieldOrder.indexOf(a) - fieldOrder.indexOf(b));
-                        
-                        [...orderedFields, ...otherFields].forEach(key => {
-                            let value = msg.data[key];
-                            let extraClass = '';
-                            
-                            if (key === 'action') {
-                                extraClass = value === 'BUY' ? 'action-buy' : (value === 'SELL' ? 'action-sell' : '');
-                            }
-                            
-                            fieldsHtml += `
-                                <div class="message-field">
-                                    <div class="message-field-label">${key}</div>
-                                    <div class="message-field-value ${extraClass}">${value}</div>
-                                </div>
-                            `;
-                        });
-                    }
-                    
-                    html += `
-                        <div class="message-item">
-                            <div class="message-header">
-                                <span class="message-index">#${msg.originalIndex + 1}</span>
-                                <span class="message-id">ID: ${msg.id}</span>
+                        <div class="split-columns">
+                            <div class="column-buy">
+                                <div class="column-header buy">买入 (${buyMsgs.length}条)</div>
+                                ${buyMsgs.length > 0 ? buyMsgs.map(msg => `
+                                    <div class="message-item">
+                                        <div class="message-header">
+                                            <span class="message-index">#${msg.originalIndex + 1}</span>
+                                            <span class="message-id">ID: ${msg.id}</span>
+                                        </div>
+                                        <div class="message-fields">
+                                            ${renderMessageFields(msg)}
+                                        </div>
+                                    </div>
+                                `).join('') : '<div class="column-empty">暂无买入</div>'}
                             </div>
-                            <div class="message-fields">
-                                ${fieldsHtml}
+                            <div class="column-sell">
+                                <div class="column-header sell">卖出 (${sellMsgs.length}条)</div>
+                                ${sellMsgs.length > 0 ? sellMsgs.map(msg => `
+                                    <div class="message-item">
+                                        <div class="message-header">
+                                            <span class="message-index">#${msg.originalIndex + 1}</span>
+                                            <span class="message-id">ID: ${msg.id}</span>
+                                        </div>
+                                        <div class="message-fields">
+                                            ${renderMessageFields(msg)}
+                                        </div>
+                                    </div>
+                                `).join('') : '<div class="column-empty">暂无卖出</div>'}
                             </div>
                         </div>
-                    `;
-                });
+                `;
+                
+                // 显示其他类型消息
+                if (otherMsgs.length > 0) {
+                    html += `<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                        <div style="font-weight: 600; color: #666; margin-bottom: 10px;">其他消息 (${otherMsgs.length}条)</div>`;
+                    otherMsgs.forEach(msg => {
+                        html += `
+                            <div class="message-item">
+                                <div class="message-header">
+                                    <span class="message-index">#${msg.originalIndex + 1}</span>
+                                    <span class="message-id">ID: ${msg.id}</span>
+                                </div>
+                                <div class="message-fields">
+                                    ${renderMessageFields(msg)}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+                
                 html += '</div>';
             });
             
