@@ -89,6 +89,24 @@
             background: white; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;
             word-break: break-all; font-family: monospace; font-size: 0.85rem;
         }
+        .date-group {
+            margin-bottom: 20px;
+        }
+        .date-group-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 10px 15px; border-radius: 6px 6px 0 0;
+            font-weight: 600; position: sticky; top: 0; z-index: 10;
+        }
+        .action-buy { color: #10b981; font-weight: 600; }
+        .action-sell { color: #ef4444; font-weight: 600; }
+        .message-fields {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;
+        }
+        .message-field {
+            background: #f8fafc; padding: 6px 10px; border-radius: 4px; font-size: 0.85rem;
+        }
+        .message-field-label { color: #666; font-size: 0.75rem; }
+        .message-field-value { font-weight: 500; }
         .trade-table { width: 100%; border-collapse: collapse; }
         .trade-table th, .trade-table td {
             padding: 12px; text-align: left;
@@ -199,7 +217,12 @@
                     <div class="stream-content-header">
                         <span id="current-stream-name" style="font-weight: 600; color: #333;"></span>
                         <span id="current-stream-count" style="color: #666; font-size: 0.9rem;"></span>
-                        <button onclick="closeStreamContent()" style="padding: 5px 12px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer;">关闭</button>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <select id="date-filter" style="padding: 5px 10px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 0.9rem;">
+                                <option value="">全部日期</option>
+                            </select>
+                            <button onclick="closeStreamContent()" style="padding: 5px 12px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer;">关闭</button>
+                        </div>
                     </div>
                     <div class="message-list" id="message-list"></div>
                 </div>
@@ -237,6 +260,120 @@
         let currentStreamsData = {};
         let activeStreamName = null;
 
+        // 从消息中提取日期
+        function extractDateFromMessage(msg) {
+            if (msg.data && msg.data.time) {
+                const timeStr = msg.data.time;
+                const match = timeStr.match(/^(\d{4}-\d{2}-\d{2})/);
+                if (match) {
+                    return match[1];
+                }
+            }
+            return '未知日期';
+        }
+
+        // 按日期分组消息
+        function groupMessagesByDate(messages) {
+            const groups = {};
+            messages.forEach((msg, index) => {
+                const date = extractDateFromMessage(msg);
+                if (!groups[date]) {
+                    groups[date] = [];
+                }
+                groups[date].push({ ...msg, originalIndex: index });
+            });
+            return groups;
+        }
+
+        // 渲染消息列表（按日期分组）
+        function renderMessageList(streamData, filterDate = '') {
+            const messageList = document.getElementById('message-list');
+            if (!streamData.messages || streamData.messages.length === 0) {
+                messageList.innerHTML = '<div style="padding: 30px; text-align: center; color: #999;">暂无消息</div>';
+                return;
+            }
+
+            const groups = groupMessagesByDate(streamData.messages);
+            const dates = Object.keys(groups).sort().reverse();
+            
+            // 更新日期筛选下拉框
+            const dateFilter = document.getElementById('date-filter');
+            const currentValue = dateFilter.value;
+            dateFilter.innerHTML = '<option value="">全部日期</option>';
+            dates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = `${date} (${groups[date].length}条)`;
+                dateFilter.appendChild(option);
+            });
+            dateFilter.value = currentValue;
+            
+            // 根据筛选日期过滤
+            const filteredDates = filterDate ? [filterDate] : dates;
+            if (filteredDates.length === 0 || (filteredDates.length === 1 && !groups[filteredDates[0]])) {
+                messageList.innerHTML = '<div style="padding: 30px; text-align: center; color: #999;">该日期无消息</div>';
+                return;
+            }
+
+            let html = '';
+            filteredDates.forEach(date => {
+                const msgs = groups[date];
+                html += `
+                    <div class="date-group">
+                        <div class="date-group-header">${date} (${msgs.length}条消息)</div>
+                `;
+                msgs.forEach((msg, idx) => {
+                    // 渲染消息字段
+                    let fieldsHtml = '';
+                    if (msg.data) {
+                        const fieldOrder = ['time', 'action', 'code', 'price', 'pct', 'strategy', 'cancel_order'];
+                        const orderedFields = [];
+                        const otherFields = [];
+                        
+                        Object.keys(msg.data).forEach(key => {
+                            if (fieldOrder.includes(key)) {
+                                orderedFields.push(key);
+                            } else {
+                                otherFields.push(key);
+                            }
+                        });
+                        orderedFields.sort((a, b) => fieldOrder.indexOf(a) - fieldOrder.indexOf(b));
+                        
+                        [...orderedFields, ...otherFields].forEach(key => {
+                            let value = msg.data[key];
+                            let extraClass = '';
+                            
+                            if (key === 'action') {
+                                extraClass = value === 'BUY' ? 'action-buy' : (value === 'SELL' ? 'action-sell' : '');
+                            }
+                            
+                            fieldsHtml += `
+                                <div class="message-field">
+                                    <div class="message-field-label">${key}</div>
+                                    <div class="message-field-value ${extraClass}">${value}</div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    html += `
+                        <div class="message-item">
+                            <div class="message-header">
+                                <span class="message-index">#${msg.originalIndex + 1}</span>
+                                <span class="message-id">ID: ${msg.id}</span>
+                            </div>
+                            <div class="message-fields">
+                                ${fieldsHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            });
+            
+            messageList.innerHTML = html;
+        }
+
         // 选择策略流
         function selectStream(streamName) {
             activeStreamName = streamName;
@@ -254,27 +391,9 @@
             document.getElementById('current-stream-name').textContent = streamName;
             document.getElementById('current-stream-count').textContent = `(${streamData.length} 条消息)`;
             
-            // 渲染消息列表
-            const messageList = document.getElementById('message-list');
-            if (!streamData.messages || streamData.messages.length === 0) {
-                messageList.innerHTML = '<div style="padding: 30px; text-align: center; color: #999;">暂无消息</div>';
-            } else {
-                messageList.innerHTML = streamData.messages.map((msg, index) => {
-                    let contentStr = '';
-                    if (msg.data) {
-                        contentStr = Object.keys(msg.data).map(k => `${k}: ${msg.data[k]}`).join('<br>');
-                    }
-                    return `
-                        <div class="message-item">
-                            <div class="message-header">
-                                <span class="message-index">#${index + 1}</span>
-                                <span class="message-id">ID: ${msg.id}</span>
-                            </div>
-                            <div class="message-content">${contentStr || JSON.stringify(msg.data)}</div>
-                        </div>
-                    `;
-                }).join('');
-            }
+            // 渲染消息列表（保持当前日期筛选）
+            const dateFilter = document.getElementById('date-filter');
+            renderMessageList(streamData, dateFilter.value);
         }
 
         // 关闭策略流内容
@@ -348,7 +467,14 @@
                     
                     // 如果之前有激活的流，保持它
                     if (activeStreamName && data.streams[activeStreamName]) {
+                        const dateFilter = document.getElementById('date-filter');
+                        const currentDateValue = dateFilter.value;
                         selectStream(activeStreamName);
+                        // 保持日期筛选
+                        if (currentDateValue) {
+                            dateFilter.value = currentDateValue;
+                            renderMessageList(data.streams[activeStreamName], currentDateValue);
+                        }
                     }
                     
                     // 应用当前搜索过滤
@@ -487,6 +613,13 @@
         // 搜索框事件监听
         document.getElementById('stream-search').addEventListener('input', (e) => {
             filterStreams(e.target.value);
+        });
+        
+        // 日期筛选事件监听
+        document.getElementById('date-filter').addEventListener('change', (e) => {
+            if (activeStreamName && currentStreamsData[activeStreamName]) {
+                renderMessageList(currentStreamsData[activeStreamName], e.target.value);
+            }
         });
 
         // 设置定时刷新

@@ -108,21 +108,26 @@ def get_system_info():
     except:
         return {'cpu_percent':0,'memory_percent':0,'disk_percent':0}
 
-def report_to_cloud_redis(status_data):
+def report_to_cloud_redis(status_data, is_heartbeat_only=False):
     try:
         r = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, decode_responses=True)
         key = 'monitor:status'
         r.set(key, json.dumps(status_data, ensure_ascii=False))
-        r.expire(key, 60)
-        stream_key = 'monitor:history'
-        r.xadd(stream_key, {'timestamp':status_data['timestamp'],'data':json.dumps(status_data, ensure_ascii=False)})
+        r.expire(key, 120)
+        
+        # 只有完整上报才记录历史
+        if not is_heartbeat_only:
+            stream_key = 'monitor:history'
+            r.xadd(stream_key, {'timestamp':status_data['timestamp'],'data':json.dumps(status_data, ensure_ascii=False)})
+        
         return True
-    except:
+    except Exception as e:
+        logger.error(f'上报云端失败: {e}')
         return False
 
 def monitor_loop():
     global last_report_time
-    logger.info(f'监控服务启动 → 心跳{HEARTBEAT_INTERVAL}秒 | 上报{REPORT_INTERVAL//60}分钟')
+    logger.info(f'监控服务启动 → 心跳{HEARTBEAT_INTERVAL}秒 | 完整上报{REPORT_INTERVAL//60}分钟')
     
     while True:
         now = datetime.now()
@@ -156,11 +161,15 @@ def monitor_loop():
         # 系统信息
         monitor_status['system'] = get_system_info()
         
-        # 上报控制
+        # 每次都上报心跳信息（快速响应）
+        report_to_cloud_redis(monitor_status, is_heartbeat_only=True)
+        logger.debug('❤️ 心跳已更新')
+        
+        # 完整上报控制（记录历史）
         if current_ts - last_report_time >= REPORT_INTERVAL or last_report_time == 0:
-            report_to_cloud_redis(monitor_status)
+            report_to_cloud_redis(monitor_status, is_heartbeat_only=False)
             last_report_time = current_ts
-            logger.info('✅ 已上报云端')
+            logger.info('✅ 完整数据已上报云端')
         
         time.sleep(HEARTBEAT_INTERVAL)
 
