@@ -141,6 +141,71 @@
             padding: 30px;
             font-size: 0.9rem;
         }
+        
+        /* 监控消息详情样式 */
+        .monitor-history-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #fafafa;
+        }
+        .monitor-history-item:nth-child(even) {
+            background: #ffffff;
+        }
+        .monitor-history-item:last-child {
+            border-bottom: none;
+        }
+        .monitor-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .monitor-history-time {
+            font-weight: 600;
+            color: #667eea;
+        }
+        .monitor-history-id {
+            color: #999;
+            font-size: 0.75rem;
+        }
+        .monitor-history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .monitor-history-section {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .monitor-history-section-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .monitor-history-field {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.85rem;
+        }
+        .monitor-history-field-label {
+            color: #666;
+        }
+        .monitor-history-field-value {
+            font-weight: 500;
+        }
+        .status-online {
+            color: #10b981;
+        }
+        .status-offline {
+            color: #ef4444;
+        }
         .trade-table { width: 100%; border-collapse: collapse; }
         .trade-table th, .trade-table td {
             padding: 12px; text-align: left;
@@ -235,6 +300,30 @@
                 </div>
             </div>
 
+            <!-- 最近交易记录卡片 -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">最近交易记录</h2>
+                </div>
+                <table class="trade-table">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>策略</th>
+                            <th>代码</th>
+                            <th>操作</th>
+                            <th>价格</th>
+                            <th>数量</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trade-table-body">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #999; padding: 30px;">暂无数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <!-- 策略流列表卡片 -->
             <div class="card full-width">
                 <div class="card-header">
@@ -262,28 +351,14 @@
                 </div>
             </div>
 
-            <!-- 最近交易记录卡片 -->
+            <!-- 监控消息详情卡片 -->
             <div class="card full-width">
                 <div class="card-header">
-                    <h2 class="card-title">最近交易记录</h2>
+                    <h2 class="card-title">监控消息详情</h2>
                 </div>
-                <table class="trade-table">
-                    <thead>
-                        <tr>
-                            <th>时间</th>
-                            <th>策略</th>
-                            <th>代码</th>
-                            <th>操作</th>
-                            <th>价格</th>
-                            <th>数量</th>
-                        </tr>
-                    </thead>
-                    <tbody id="trade-table-body">
-                        <tr>
-                            <td colspan="6" style="text-align: center; color: #999; padding: 30px;">暂无数据</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="monitor-history-list" id="monitor-history-list" style="max-height: 300px; overflow-y: auto;">
+                    <div style="color: #999; text-align: center; padding: 30px;">加载中...</div>
+                </div>
             </div>
         </div>
 
@@ -499,6 +574,101 @@
             });
         }
 
+        // 渲染单个字段
+        function renderMonitorField(label, value, highlightClass = '') {
+            let displayValue = value;
+            if (typeof value === 'boolean') {
+                displayValue = value ? '是' : '否';
+            }
+            return `
+                <div class="monitor-history-field">
+                    <span class="monitor-history-field-label">${label}</span>
+                    <span class="monitor-history-field-value ${highlightClass}">${displayValue}</span>
+                </div>
+            `;
+        }
+
+        // 更新监控历史消息
+        async function updateMonitorHistory() {
+            try {
+                const response = await fetch('/api/monitor-history');
+                const messages = await response.json();
+                const container = document.getElementById('monitor-history-list');
+                
+                if (messages.length === 0) {
+                    container.innerHTML = '<div style="color: #999; text-align: center; padding: 30px;">暂无监控消息</div>';
+                    return;
+                }
+                
+                container.innerHTML = messages.map((msg, index) => {
+                    const data = msg.data;
+                    let sectionsHtml = '';
+                    
+                    // Redis 连接状态
+                    if (data.redis_local || data.redis_cloud) {
+                        sectionsHtml += '<div class="monitor-history-section">';
+                        sectionsHtml += '<div class="monitor-history-section-title">Redis 连接</div>';
+                        if (data.redis_local) {
+                            const localClass = data.redis_local.connected ? 'status-online' : 'status-offline';
+                            sectionsHtml += renderMonitorField('本地', data.redis_local.connected ? '在线' : '离线', localClass);
+                        }
+                        if (data.redis_cloud) {
+                            const cloudClass = data.redis_cloud.connected ? 'status-online' : 'status-offline';
+                            sectionsHtml += renderMonitorField('云端', data.redis_cloud.connected ? '在线' : '离线', cloudClass);
+                        }
+                        sectionsHtml += '</div>';
+                    }
+                    
+                    // 进程状态
+                    if (data.signal_receiver || data.miniqmt) {
+                        sectionsHtml += '<div class="monitor-history-section">';
+                        sectionsHtml += '<div class="monitor-history-section-title">进程状态</div>';
+                        if (data.signal_receiver) {
+                            const recvClass = data.signal_receiver.running ? 'status-online' : 'status-offline';
+                            sectionsHtml += renderMonitorField('信号接收', data.signal_receiver.running ? '运行中' : '未运行', recvClass);
+                        }
+                        if (data.miniqmt) {
+                            const miniClass = data.miniqmt.running ? 'status-online' : 'status-offline';
+                            sectionsHtml += renderMonitorField('MiniQMT', data.miniqmt.running ? '运行中' : '未运行', miniClass);
+                        }
+                        sectionsHtml += '</div>';
+                    }
+                    
+                    // 系统资源
+                    if (data.system) {
+                        sectionsHtml += '<div class="monitor-history-section">';
+                        sectionsHtml += '<div class="monitor-history-section-title">系统资源</div>';
+                        if (data.system.cpu_percent !== undefined) {
+                            sectionsHtml += renderMonitorField('CPU', data.system.cpu_percent + '%');
+                        }
+                        if (data.system.memory_percent !== undefined) {
+                            sectionsHtml += renderMonitorField('内存', data.system.memory_percent + '%');
+                        }
+                        if (data.system.disk_percent !== undefined) {
+                            sectionsHtml += renderMonitorField('磁盘', data.system.disk_percent + '%');
+                        }
+                        sectionsHtml += '</div>';
+                    }
+                    
+                    return `
+                        <div class="monitor-history-item">
+                            <div class="monitor-history-header">
+                                <span class="monitor-history-time">${msg.timestamp || data.timestamp || '未知时间'}</span>
+                                <span class="monitor-history-id">#${index + 1} ID: ${msg.id}</span>
+                            </div>
+                            <div class="monitor-history-grid">
+                                ${sectionsHtml}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('获取监控历史失败:', error);
+                document.getElementById('monitor-history-list').innerHTML = '<div style="color: #999; text-align: center; padding: 30px;">获取失败</div>';
+            }
+        }
+
         // 更新Redis状态和策略流信息
         async function updateStatus() {
             try {
@@ -690,6 +860,7 @@
         updateStatus();
         updateTrades();
         updateLocalMonitor();
+        updateMonitorHistory();
         
         // 搜索框事件监听
         document.getElementById('stream-search').addEventListener('input', (e) => {
@@ -707,6 +878,7 @@
         setInterval(updateStatus, 3000);       // Redis状态每3秒刷新
         setInterval(updateTrades, 5000);       // 交易记录每5秒刷新
         setInterval(updateLocalMonitor, 5000); // 本地监控每5秒刷新
+        setInterval(updateMonitorHistory, 10000); // 监控历史每10秒刷新
     </script>
 </body>
 </html>

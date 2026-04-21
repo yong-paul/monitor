@@ -57,7 +57,8 @@ def api_status():
             for key in stream_keys:
                 try:
                     key_type = r.type(key)
-                    if key_type == 'stream':
+                    # 排除内部流：monitor:history 和 monitor:trades
+                    if key_type == 'stream' and not key.startswith('monitor:'):
                         stream_length = r.xlen(key)
                         last_msg = r.xrevrange(key, count=1)
                         last_id = last_msg[0][0] if last_msg else '0-0'
@@ -86,6 +87,42 @@ def api_status():
     
     status_data['last_update'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     return jsonify(status_data)
+
+@app.route('/api/monitor-history')
+def api_monitor_history():
+    """获取监控历史消息 API"""
+    r = get_redis_client()
+    if not r:
+        return jsonify({'error': 'Redis 连接失败'}), 500
+    
+    try:
+        messages = r.xrevrange('monitor:history', count=50)
+        result = []
+        for msg_id, data in messages:
+            try:
+                # 解析 data 字段（如果是 JSON 字符串）
+                if 'data' in data:
+                    parsed_data = json.loads(data['data'])
+                    result.append({
+                        'id': msg_id,
+                        'timestamp': data.get('timestamp', ''),
+                        'data': parsed_data
+                    })
+                else:
+                    result.append({
+                        'id': msg_id,
+                        'timestamp': data.get('timestamp', ''),
+                        'data': data
+                    })
+            except:
+                result.append({
+                    'id': msg_id,
+                    'timestamp': data.get('timestamp', ''),
+                    'data': data
+                })
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/monitor')
 def api_monitor():
