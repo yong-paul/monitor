@@ -62,9 +62,19 @@ def api_status():
                         last_msg = r.xrevrange(key, count=1)
                         last_id = last_msg[0][0] if last_msg else '0-0'
                         
+                        # 获取全量消息
+                        recent_messages = r.xrevrange(key, count=None)
+                        messages = []
+                        for msg_id, msg_data in recent_messages:
+                            messages.append({
+                                'id': msg_id,
+                                'data': msg_data
+                            })
+                        
                         status_data['streams'][key] = {
                             'length': stream_length,
-                            'last_generated_id': last_id
+                            'last_generated_id': last_id,
+                            'messages': messages
                         }
                 except Exception as e:
                     continue

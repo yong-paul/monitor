@@ -52,14 +52,43 @@
         }
         .metric-value { font-size: 1.8rem; font-weight: 700; color: #667eea; margin-bottom: 5px; }
         .metric-label { font-size: 0.9rem; color: #666; }
-        .stream-list { list-style: none; }
-        .stream-item {
-            padding: 12px; background: #f8fafc; border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex; justify-content: space-between; align-items: center;
+        .stream-tabs {
+            display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;
         }
-        .stream-name { font-weight: 600; color: #333; }
-        .stream-stats { font-size: 0.85rem; color: #666; }
+        .stream-tab {
+            padding: 8px 16px; background: #f8fafc; border-radius: 6px;
+            cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;
+        }
+        .stream-tab:hover { background: #e8f0fe; border-color: #667eea; }
+        .stream-tab.active { background: #667eea; color: white; border-color: #667eea; }
+        .stream-tab-count { font-size: 0.8rem; opacity: 0.8; }
+        .stream-content {
+            border-top: 1px solid #e2e8f0; padding-top: 15px;
+        }
+        .stream-content-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px;
+        }
+        .message-list {
+            max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        .message-item {
+            padding: 12px 15px; border-bottom: 1px solid #e2e8f0;
+            background: #fafafa;
+        }
+        .message-item:nth-child(even) { background: #ffffff; }
+        .message-item:last-child { border-bottom: none; }
+        .message-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
+        }
+        .message-id { color: #999; font-size: 0.75rem; }
+        .message-index { color: #667eea; font-weight: 600; font-size: 0.85rem; }
+        .message-content {
+            background: white; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;
+            word-break: break-all; font-family: monospace; font-size: 0.85rem;
+        }
         .trade-table { width: 100%; border-collapse: collapse; }
         .trade-table th, .trade-table td {
             padding: 12px; text-align: left;
@@ -81,7 +110,7 @@
         </div>
 
         <div class="dashboard">
-            <!-- Redis 连接状态卡片 -->
+            <!-- 第一行：Redis连接状态、本地服务状态、系统资源 -->
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Redis 连接状态</h2>
@@ -102,17 +131,6 @@
                 </div>
             </div>
 
-            <!-- 策略流列表卡片 -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">策略流列表</h2>
-                </div>
-                <ul class="stream-list" id="stream-list">
-                    <li style="color: #999; text-align: center; padding: 20px;">加载中...</li>
-                </ul>
-            </div>
-
-            <!-- 本地服务状态卡片 -->
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">本地服务状态</h2>
@@ -145,7 +163,6 @@
                 </div>
             </div>
 
-            <!-- 系统资源卡片 -->
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">系统资源</h2>
@@ -163,6 +180,28 @@
                         <div class="metric-value" id="disk-percent">-</div>
                         <div class="metric-label">磁盘使用率</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- 策略流列表卡片 -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">策略流列表</h2>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="stream-search" placeholder="搜索策略名称..." 
+                               style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+                    </div>
+                </div>
+                <div class="stream-tabs" id="stream-tabs">
+                    <div style="color: #999; text-align: center; padding: 20px;">加载中...</div>
+                </div>
+                <div class="stream-content" id="stream-content" style="display: none;">
+                    <div class="stream-content-header">
+                        <span id="current-stream-name" style="font-weight: 600; color: #333;"></span>
+                        <span id="current-stream-count" style="color: #666; font-size: 0.9rem;"></span>
+                        <button onclick="closeStreamContent()" style="padding: 5px 12px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer;">关闭</button>
+                    </div>
+                    <div class="message-list" id="message-list"></div>
                 </div>
             </div>
 
@@ -195,11 +234,77 @@
     </div>
 
     <script>
+        let currentStreamsData = {};
+        let activeStreamName = null;
+
+        // 选择策略流
+        function selectStream(streamName) {
+            activeStreamName = streamName;
+            const streamData = currentStreamsData[streamName];
+            
+            if (!streamData) return;
+            
+            // 更新标签页状态
+            document.querySelectorAll('.stream-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.stream === streamName);
+            });
+            
+            // 显示消息内容
+            document.getElementById('stream-content').style.display = 'block';
+            document.getElementById('current-stream-name').textContent = streamName;
+            document.getElementById('current-stream-count').textContent = `(${streamData.length} 条消息)`;
+            
+            // 渲染消息列表
+            const messageList = document.getElementById('message-list');
+            if (!streamData.messages || streamData.messages.length === 0) {
+                messageList.innerHTML = '<div style="padding: 30px; text-align: center; color: #999;">暂无消息</div>';
+            } else {
+                messageList.innerHTML = streamData.messages.map((msg, index) => {
+                    let contentStr = '';
+                    if (msg.data) {
+                        contentStr = Object.keys(msg.data).map(k => `${k}: ${msg.data[k]}`).join('<br>');
+                    }
+                    return `
+                        <div class="message-item">
+                            <div class="message-header">
+                                <span class="message-index">#${index + 1}</span>
+                                <span class="message-id">ID: ${msg.id}</span>
+                            </div>
+                            <div class="message-content">${contentStr || JSON.stringify(msg.data)}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // 关闭策略流内容
+        function closeStreamContent() {
+            document.getElementById('stream-content').style.display = 'none';
+            document.querySelectorAll('.stream-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            activeStreamName = null;
+        }
+
+        // 过滤策略流
+        function filterStreams(searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            document.querySelectorAll('.stream-tab').forEach(tab => {
+                const streamName = tab.dataset.stream.toLowerCase();
+                if (streamName.includes(searchLower)) {
+                    tab.style.display = 'inline-block';
+                } else {
+                    tab.style.display = 'none';
+                }
+            });
+        }
+
         // 更新Redis状态和策略流信息
         async function updateStatus() {
             try {
                 const response = await fetch('/api/status');
                 const data = await response.json();
+                currentStreamsData = data.streams;
                 
                 // 更新Redis连接状态
                 const statusDot = document.getElementById('redis-status-dot');
@@ -222,21 +327,34 @@
                 }
                 document.getElementById('total-messages').textContent = totalMessages;
 
-                // 更新策略流列表
-                const streamList = document.getElementById('stream-list');
+                // 更新策略流标签页
+                const streamTabs = document.getElementById('stream-tabs');
                 if (streamCount === 0) {
-                    streamList.innerHTML = '<li style="color: #999; text-align: center; padding: 20px;">暂无策略流</li>';
+                    streamTabs.innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">暂无策略流</div>';
+                    closeStreamContent();
                 } else {
-                    streamList.innerHTML = '';
+                    streamTabs.innerHTML = '';
                     for (const streamName in data.streams) {
                         const streamData = data.streams[streamName];
-                        const li = document.createElement('li');
-                        li.className = 'stream-item';
-                        li.innerHTML = `
-                            <span class="stream-name">${streamName}</span>
-                            <span class="stream-stats">${streamData.length} 条消息</span>
+                        const tab = document.createElement('div');
+                        tab.className = 'stream-tab' + (activeStreamName === streamName ? ' active' : '');
+                        tab.dataset.stream = streamName;
+                        tab.onclick = () => selectStream(streamName);
+                        tab.innerHTML = `
+                            ${streamName} <span class="stream-tab-count">(${streamData.length})</span>
                         `;
-                        streamList.appendChild(li);
+                        streamTabs.appendChild(tab);
+                    }
+                    
+                    // 如果之前有激活的流，保持它
+                    if (activeStreamName && data.streams[activeStreamName]) {
+                        selectStream(activeStreamName);
+                    }
+                    
+                    // 应用当前搜索过滤
+                    const searchInput = document.getElementById('stream-search');
+                    if (searchInput) {
+                        filterStreams(searchInput.value);
                     }
                 }
 
@@ -365,6 +483,11 @@
         updateStatus();
         updateTrades();
         updateLocalMonitor();
+        
+        // 搜索框事件监听
+        document.getElementById('stream-search').addEventListener('input', (e) => {
+            filterStreams(e.target.value);
+        });
 
         // 设置定时刷新
         setInterval(updateStatus, 3000);       // Redis状态每3秒刷新
