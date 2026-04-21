@@ -1,3 +1,5 @@
-
-flask&gt;=2.0.0
-redis&gt;=4.0.0
+flask==2.3.3
+redis==4.6.0
+python-dotenv==1.0.0
+# psutil==5.9.6  # 如需在云端也使用系统监控（可选）
+requests==2.31.0

@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Flask 应用服务
+  cloud-app:
+    build: .
+    restart: always  # 自动重启（异常/服务器重启后）
+    ports:
+      - "5000:5000"  # 宿主机端口:容器端口
+    environment:
+      - REDIS_HOST=cloud-redis  # 连接容器内的 Redis
+      - REDIS_PORT=6378
+      - REDIS_PASSWORD=7712
+    depends_on:
+      - cloud-redis  # 先启动 Redis 再启动应用
+    networks:
+      - cloud-network
+
+  # Redis 服务（可选，如已有外部 Redis 可删除此服务）
+  cloud-redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6378:6379"  # 宿主机 6378 映射到容器 6379
+    command: >
+      redis-server 
+      --requirepass 7712 
+      --appendonly yes 
+      --maxmemory 512mb 
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data  # 持久化 Redis 数据
+    networks:
+      - cloud-network
+
+# 网络配置（容器间通信）
+networks:
+  cloud-network:
+    driver: bridge
+
+# 数据卷（持久化 Redis 数据）
+volumes:
+  redis-data:
