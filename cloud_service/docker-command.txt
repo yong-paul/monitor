@@ -1,0 +1,7 @@
+docker rm -f python_app && \
+docker build -t my-python-app . && \
+docker run -d \
+  --name python_app \
+  --restart unless-stopped \
+  -p 5000:5000 \
+  my-python-app

@@ -170,14 +170,7 @@ def api_trades():
     
     if not trades:
         trades = [
-            {
-                'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'strategy': 'g9small',
-                'code': '511880.SH',
-                'action': 'BUY',
-                'price': 100.00,
-                'volume': 100
-            }
+
         ]
     return jsonify(trades)
 
@@ -201,4 +194,4 @@ def api_stream_data(stream_name):
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host=FLASK_HOST, port=FLASK_PORT, debug=FLASK_DEBUG)
+    app.run(host=FLASK_HOST, port=FLASK_PORT)
