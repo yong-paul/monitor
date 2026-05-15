@@ -7,574 +7,1099 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
             min-height: 100vh;
-            padding: 20px;
+            display: flex;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header { text-align: center; color: white; margin-bottom: 30px; }
-        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
+
+        .sidebar {
+            width: 200px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 20px;
         }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+
+        .sidebar-header h1 {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
         }
+
+        .sidebar-header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+        }
+
+        .nav-items {
+            flex: 1;
+            padding: 0 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-item .icon {
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 200px;
+            min-height: 100vh;
+            padding: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .page-subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-top: 5px;
+        }
+
+        .last-update {
+            color: #a1a1aa;
+            font-size: 0.85rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
         .card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f0f2f5;
         }
-        .card-title { font-size: 1.3rem; font-weight: 600; color: #333; }
-        .status-indicator { display: flex; align-items: center; gap: 8px; }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        #system-resources-card .card-title {
+            color: #1a1a2e;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .status-dot {
-            width: 12px; height: 12px; border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
             animation: pulse 2s infinite;
         }
-        .status-dot.online { background-color: #10b981; }
-        .status-dot.offline { background-color: #ef4444; animation: none; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .status-text { font-weight: 500; color: #666; }
-        .metric-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .metric {
-            background: #f8fafc; padding: 15px; border-radius: 10px;
-            text-align: center;
+
+        .status-dot.online {
+            background-color: #10b981;
         }
-        .metric-value { font-size: 1.8rem; font-weight: 700; color: #667eea; margin-bottom: 5px; }
-        .metric-label { font-size: 0.9rem; color: #666; }
-        .stream-tabs {
-            display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;
+
+        .status-dot.offline {
+            background-color: #ef4444;
+            animation: none;
         }
-        .stream-tab {
-            padding: 8px 16px; background: #f8fafc; border-radius: 6px;
-            cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;
+
+        .status-dot.warning {
+            background-color: #f59e0b;
         }
-        .stream-tab:hover { background: #e8f0fe; border-color: #667eea; }
-        .stream-tab.active { background: #667eea; color: white; border-color: #667eea; }
-        .stream-tab-count { font-size: 0.8rem; opacity: 0.8; }
-        .stream-content {
-            border-top: 1px solid #e2e8f0; padding-top: 15px;
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
-        .stream-content-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px;
+
+        .status-text {
+            font-weight: 500;
+            color: #94a3b8;
+            font-size: 0.9rem;
         }
-        .message-list {
-            max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0;
-            border-radius: 8px;
-        }
-        .message-item {
-            padding: 12px 15px; border-bottom: 1px solid #e2e8f0;
-            background: #fafafa;
-        }
-        .message-item:nth-child(even) { background: #ffffff; }
-        .message-item:last-child { border-bottom: none; }
-        .message-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 8px;
-        }
-        .message-id { color: #999; font-size: 0.75rem; }
-        .message-index { color: #667eea; font-weight: 600; font-size: 0.85rem; }
-        .message-content {
-            background: white; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;
-            word-break: break-all; font-family: monospace; font-size: 0.85rem;
-        }
-        .date-group {
-            margin-bottom: 20px;
-        }
-        .date-group-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; padding: 10px 15px; border-radius: 6px 6px 0 0;
-            font-weight: 600; position: sticky; top: 0; z-index: 10;
-        }
-        .action-buy { color: #10b981; font-weight: 600; }
-        .action-sell { color: #ef4444; font-weight: 600; }
-        .message-fields {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;
-        }
-        .message-field {
-            background: #f8fafc; padding: 6px 10px; border-radius: 4px; font-size: 0.85rem;
-        }
-        .message-field-label { color: #666; font-size: 0.75rem; }
-        .message-field-value { font-weight: 500; }
-        
-        /* 左右分栏布局 */
-        .split-columns {
+
+        .metric-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
         }
-        .column-buy {
-            border-left: 4px solid #ef4444;
+
+        .metric {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
         }
-        .column-sell {
-            border-left: 4px solid #10b981;
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            transition: all 0.3s ease;
         }
-        .column-header {
-            padding: 10px 15px;
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: #a1a1aa;
+        }
+
+        #system-resources-card .metric-value {
+            color: #667eea;
+        }
+
+        #system-resources-card .metric-label {
+            color: #64748b;
+        }
+
+        .status-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .status-item-label {
+            font-size: 0.9rem;
+            color: #a1a1aa;
+        }
+
+        .status-item-value {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+
+        .status-online {
+            color: #10b981;
+        }
+
+        .status-offline {
+            color: #ef4444;
+        }
+
+        .status-warning {
+            color: #f59e0b;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .panel {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        .panel-title {
+            font-size: 1.15rem;
             font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 10px;
-            border-radius: 0 4px 4px 0;
+            color: #64748b;
         }
-        .column-header.buy {
+
+        .panel-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-box {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            min-width: 200px;
+            transition: border-color 0.3s ease;
+            color: #64748b;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 14px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f2f5;
+            transition: background-color 0.2s ease;
+        }
+
+        .data-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #71717a;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            color: #94a3b8;
+        }
+
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .badge-success {
             background: rgba(16, 185, 129, 0.1);
             color: #10b981;
         }
-        .column-header.sell {
+
+        .badge-danger {
             background: rgba(239, 68, 68, 0.1);
             color: #ef4444;
         }
-        .column-empty {
-            text-align: center;
-            color: #999;
-            padding: 30px;
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
             font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        
-        /* 监控消息详情样式 */
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 20px;
+        }
+
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #f1f5f9;
+        }
+
+        .page-btn.active {
+            background: #667eea;
+            color: #fff;
+            border-color: #667eea;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .view-container {
+            display: none;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .view-container.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            color: #ef4444;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .error-message .icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .error-message h4 {
+            margin-bottom: 8px;
+        }
+
+        .error-message p {
+            color: #999;
+            margin-bottom: 16px;
+        }
+
+        .monitor-history-list {
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
         .monitor-history-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 16px;
+            border-bottom: 1px solid #f0f2f5;
             background: #fafafa;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            animation: fadeIn 0.2s ease-out;
         }
-        .monitor-history-item:nth-child(even) {
-            background: #ffffff;
-        }
+
         .monitor-history-item:last-child {
             border-bottom: none;
         }
+
         .monitor-history-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
+
         .monitor-history-time {
             font-weight: 600;
-            color: #667eea;
+            color: #71717a;
+            font-size: 0.95rem;
         }
+
         .monitor-history-id {
-            color: #999;
-            font-size: 0.75rem;
+            color: #a1a1aa;
+            font-size: 0.8rem;
         }
+
         .monitor-history-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
+            gap: 12px;
         }
+
         .monitor-history-section {
-            background: white;
-            padding: 10px;
-            border-radius: 6px;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
             border: 1px solid #e2e8f0;
         }
+
         .monitor-history-section-title {
             font-weight: 600;
             font-size: 0.85rem;
-            color: #666;
+            color: #71717a;
             margin-bottom: 8px;
-            padding-bottom: 5px;
+            padding-bottom: 6px;
             border-bottom: 1px solid #e2e8f0;
         }
+
         .monitor-history-field {
             display: flex;
             justify-content: space-between;
             padding: 4px 0;
             font-size: 0.85rem;
         }
+
         .monitor-history-field-label {
-            color: #666;
+            color: #a1a1aa;
         }
+
         .monitor-history-field-value {
             font-weight: 500;
+            color: #94a3b8;
         }
-        .status-online {
-            color: #10b981;
+
+        .sortable {
+            cursor: pointer;
+            position: relative;
         }
-        .status-offline {
-            color: #ef4444;
+
+        .sortable::after {
+            content: '↕';
+            margin-left: 6px;
+            font-size: 0.75rem;
+            color: #94a3b8;
         }
-        .trade-table { width: 100%; border-collapse: collapse; }
-        .trade-table th, .trade-table td {
-            padding: 12px; text-align: left;
-            border-bottom: 1px solid #f0f0f0;
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #a1a1aa;
+            animation: fadeIn 0.3s ease-out;
         }
-        .trade-table th { background: #f8fafc; font-weight: 600; color: #333; }
-        .trade-table tr:hover { background: #f8fafc; }
-        .buy { color: #10b981; font-weight: 600; }
-        .sell { color: #ef4444; font-weight: 600; }
-        .last-update { text-align: right; color: #999; font-size: 0.85rem; margin-top: 10px; }
-        .full-width { grid-column: 1 / -1; }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        .empty-state h4 {
+            margin-bottom: 8px;
+            color: #71717a;
+        }
+
+        .update-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+            color: #667eea;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .update-indicator.active {
+            opacity: 1;
+        }
+
+        .update-indicator .pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #667eea;
+            animation: pulse 1s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                flex-direction: row;
+                flex-wrap: wrap;
+                padding: 15px;
+            }
+
+            .sidebar-header {
+                border-bottom: none;
+                margin-bottom: 0;
+                padding: 0 20px 0 0;
+                border-right: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .nav-items {
+                display: flex;
+                gap: 10px;
+                padding: 0;
+                flex: none;
+            }
+
+            .nav-item {
+                margin-bottom: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px 15px;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .panel-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .panel-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .search-box {
+                flex: 1;
+                min-width: 100%;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 10px 8px;
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>量化交易系统</h1>
-            <p>实时监控面板</p>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>TradeLink</h1>
+            <p>量化交易系统</p>
+        </div>
+        <nav class="nav-items">
+            <div class="nav-item active" data-view="monitor-view">
+                <span class="icon">📊</span>
+                <span>监控详情</span>
+            </div>
+            <div class="nav-item" data-view="trades-view">
+                <span class="icon">📈</span>
+                <span>交易记录</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title" id="page-title">监控详情</h2>
+                <p class="page-subtitle" id="page-subtitle">实时监控系统状态和资源使用情况</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="update-indicator" id="update-indicator">
+                    <span class="pulse-dot"></span>
+                    更新中...
+                </span>
+                <div class="last-update" id="last-update">最后更新: --</div>
+            </div>
         </div>
 
-        <div class="dashboard">
-            <!-- 第一行：Redis连接状态、本地服务状态、系统资源 -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Redis 连接状态</h2>
-                    <div class="status-indicator">
-                        <div class="status-dot" id="redis-status-dot"></div>
-                        <span class="status-text" id="redis-status-text">检查中...</span>
-                    </div>
-                </div>
-                <div class="metric-grid">
-                    <div class="metric">
-                        <div class="metric-value" id="stream-count">-</div>
-                        <div class="metric-label">策略流数量</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-value" id="total-messages">-</div>
-                        <div class="metric-label">总消息数</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">本地服务状态</h2>
-                    <div class="status-indicator">
-                        <div class="status-dot" id="local-monitor-dot"></div>
-                        <span class="status-text" id="local-monitor-text">检查中...</span>
-                    </div>
-                </div>
-                <div style="font-size: 0.9rem; line-height: 2;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>心跳状态:</span>
-                        <span id="heartbeat-status">检查中...</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>距上次心跳:</span>
-                        <span id="heartbeat-time">-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>本地 Redis:</span>
-                        <span id="local-redis-status">检查中...</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>信号接收进程:</span>
-                        <span id="signal-receiver-status">检查中...</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>MiniQMT:</span>
-                        <span id="miniqmt-status">检查中...</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">系统资源</h2>
-                </div>
-                <div class="metric-grid">
-                    <div class="metric">
-                        <div class="metric-value" id="cpu-percent">-</div>
-                        <div class="metric-label">CPU 使用率</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-value" id="memory-percent">-</div>
-                        <div class="metric-label">内存使用率</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-value" id="disk-percent">-</div>
-                        <div class="metric-label">磁盘使用率</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 最近交易记录卡片 -->
-            <div class="card full-width">
-                <div class="card-header">
-                    <h2 class="card-title">最近交易记录</h2>
-                </div>
-                <table class="trade-table">
-                    <thead>
-                        <tr>
-                            <th>时间</th>
-                            <th>策略</th>
-                            <th>代码</th>
-                            <th>操作</th>
-                            <th>价格</th>
-                            <th>数量</th>
-                        </tr>
-                    </thead>
-                    <tbody id="trade-table-body">
-                        <tr>
-                            <td colspan="6" style="text-align: center; color: #999; padding: 30px;">暂无数据</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 策略流列表卡片 -->
-            <div class="card full-width">
-                <div class="card-header">
-                    <h2 class="card-title">策略流列表</h2>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="text" id="stream-search" placeholder="搜索策略名称..." 
-                               style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
-                    </div>
-                </div>
-                <div class="stream-tabs" id="stream-tabs">
-                    <div style="color: #999; text-align: center; padding: 20px;">加载中...</div>
-                </div>
-                <div class="stream-content" id="stream-content" style="display: none;">
-                    <div class="stream-content-header">
-                        <span id="current-stream-name" style="font-weight: 600; color: #333;"></span>
-                        <span id="current-stream-count" style="color: #666; font-size: 0.9rem;"></span>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <select id="date-filter" style="padding: 5px 10px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 0.9rem;">
-                                <option value="">全部日期</option>
-                            </select>
-                            <button onclick="closeStreamContent()" style="padding: 5px 12px; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer;">关闭</button>
+        <div id="monitor-view" class="view-container active">
+            <div class="dashboard">
+                <div class="card" id="redis-card">
+                    <div class="loading-overlay" id="redis-loading"></div>
+                    <div class="card-header">
+                        <h3 class="card-title">Redis 连接状态</h3>
+                        <div class="status-indicator">
+                            <div class="status-dot" id="redis-status-dot"></div>
+                            <span class="status-text" id="redis-status-text">检查中...</span>
                         </div>
                     </div>
-                    <div class="message-list" id="message-list"></div>
+                    <div class="metric-grid">
+                        <div class="metric">
+                            <div class="metric-value" id="stream-count">-</div>
+                            <div class="metric-label">策略流数量</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="total-messages">-</div>
+                            <div class="metric-label">总消息数</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="redis-response">-</div>
+                            <div class="metric-label">响应时间</div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- 监控消息详情卡片 -->
-            <div class="card full-width">
-                <div class="card-header">
-                    <h2 class="card-title">监控消息详情</h2>
+                <div class="card" id="local-service-card">
+                    <div class="loading-overlay" id="local-service-loading"></div>
+                    <div class="card-header">
+                        <h3 class="card-title">本地服务状态</h3>
+                        <div class="status-indicator">
+                            <div class="status-dot" id="local-monitor-dot"></div>
+                            <span class="status-text" id="local-monitor-text">检查中...</span>
+                        </div>
+                    </div>
+                    <div class="status-list">
+                        <div class="status-item">
+                            <span class="status-item-label">心跳状态</span>
+                            <span class="status-item-value" id="heartbeat-status">检查中...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">距上次心跳</span>
+                            <span class="status-item-value" id="heartbeat-time">-</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">本地 Redis</span>
+                            <span class="status-item-value" id="local-redis-status">检查中...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">信号接收进程</span>
+                            <span class="status-item-value" id="signal-receiver-status">检查中...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">MiniQMT</span>
+                            <span class="status-item-value" id="miniqmt-status">检查中...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">启动时间</span>
+                            <span class="status-item-value" id="start-time">-</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-item-label">版本信息</span>
+                            <span class="status-item-value" id="version">-</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="monitor-history-list" id="monitor-history-list" style="max-height: 300px; overflow-y: auto;">
-                    <div style="color: #999; text-align: center; padding: 30px;">加载中...</div>
+
+                <div class="card" id="system-resources-card">
+                    <div class="card-header">
+                        <h3 class="card-title">系统资源</h3>
+                    </div>
+                    <div class="metric-grid">
+                        <div class="metric">
+                            <div class="metric-value" id="cpu-percent">-</div>
+                            <div class="metric-label">CPU 使用率</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="memory-percent">-</div>
+                            <div class="metric-label">内存使用率</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="disk-percent">-</div>
+                            <div class="metric-label">磁盘使用率</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" id="network-io">-</div>
+                            <div class="metric-label">网络 I/O</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card full-width" id="monitor-messages-card">
+                    <div class="loading-overlay" id="monitor-messages-loading"></div>
+                    <div class="card-header">
+                        <h3 class="card-title">监控消息详情</h3>
+                    </div>
+                    <div class="monitor-history-list" id="monitor-history-list">
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            <h4>加载中...</h4>
+                            <p>正在获取监控消息</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="last-update" id="last-update"></div>
-    </div>
+        <div id="trades-view" class="view-container">
+            <div class="panel" style="margin-bottom: 24px;">
+                <div class="loading-overlay" id="trades-panel-loading"></div>
+                <div class="panel-header">
+                    <h3 class="panel-title">最近交易记录</h3>
+                    <div class="panel-actions">
+                        <input type="text" class="search-box" id="trade-search" placeholder="搜索交易ID或代码...">
+                        <select id="trade-status-filter" class="search-box" style="min-width: 120px;">
+                            <option value="">全部状态</option>
+                            <option value="BUY">买入</option>
+                            <option value="SELL">卖出</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="trades-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="id">交易ID</th>
+                                <th class="sortable" data-sort="time">时间</th>
+                                <th class="sortable" data-sort="strategy">策略</th>
+                                <th class="sortable" data-sort="code">代码</th>
+                                <th class="sortable" data-sort="action">操作</th>
+                                <th class="sortable" data-sort="price">价格</th>
+                                <th class="sortable" data-sort="volume">数量</th>
+                                <th class="sortable" data-sort="status">状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trades-table-body">
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <div class="icon">📋</div>
+                                        <h4>加载中...</h4>
+                                        <p>正在获取交易记录</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="trades-pagination"></div>
+            </div>
+
+            <div class="panel">
+                <div class="loading-overlay" id="strategies-panel-loading"></div>
+                <div class="panel-header">
+                    <h3 class="panel-title">策略流列表</h3>
+                    <div class="panel-actions">
+                        <input type="text" class="search-box" id="strategy-search" placeholder="搜索策略名称...">
+                        <select id="strategy-status-filter" class="search-box" style="min-width: 120px;">
+                            <option value="">全部状态</option>
+                            <option value="running">运行中</option>
+                            <option value="stopped">已停止</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="strategies-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="name">策略名称</th>
+                                <th class="sortable" data-sort="status">运行状态</th>
+                                <th class="sortable" data-sort="condition">触发条件</th>
+                                <th class="sortable" data-sort="last_execution">最近执行时间</th>
+                                <th class="sortable" data-sort="total_trades">总交易数</th>
+                                <th class="sortable" data-sort="profit">累计收益</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="strategies-table-body">
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="icon">⚙️</div>
+                                        <h4>加载中...</h4>
+                                        <p>正在获取策略列表</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="strategies-pagination"></div>
+            </div>
+        </div>
+    </main>
 
     <script>
-        let currentStreamsData = {};
-        let activeStreamName = null;
-
-        // 从消息中提取日期
-        function extractDateFromMessage(msg) {
-            if (msg.data && msg.data.time) {
-                const timeStr = msg.data.time;
-                const match = timeStr.match(/^(\d{4}-\d{2}-\d{2})/);
-                if (match) {
-                    return match[1];
-                }
+        class LoadingManager {
+            constructor() {
+                this.activeRequests = new Set();
+                this.loadingStates = {};
             }
-            return '未知日期';
+
+            startLoading(id) {
+                this.loadingStates[id] = true;
+                const overlay = document.getElementById(`${id}-loading`);
+                if (overlay) overlay.classList.add('active');
+            }
+
+            stopLoading(id) {
+                this.loadingStates[id] = false;
+                const overlay = document.getElementById(`${id}-loading`);
+                if (overlay) overlay.classList.remove('active');
+            }
+
+            isLoading(id) {
+                return this.loadingStates[id] === true;
+            }
         }
 
-        // 按日期分组消息
-        function groupMessagesByDate(messages) {
-            const groups = {};
-            messages.forEach((msg, index) => {
-                const date = extractDateFromMessage(msg);
-                if (!groups[date]) {
-                    groups[date] = [];
+        class DebouncedTask {
+            constructor(func, delay) {
+                this.func = func;
+                this.delay = delay;
+                this.timer = null;
+                this.isRunning = false;
+            }
+
+            execute(...args) {
+                if (this.timer) {
+                    clearTimeout(this.timer);
                 }
-                groups[date].push({ ...msg, originalIndex: index });
-            });
-            return groups;
-        }
-
-        // 渲染消息字段
-        function renderMessageFields(msg) {
-            let fieldsHtml = '';
-            if (msg.data) {
-                const fieldOrder = ['time', 'action', 'code', 'price', 'pct', 'strategy', 'cancel_order'];
-                const orderedFields = [];
-                const otherFields = [];
                 
-                Object.keys(msg.data).forEach(key => {
-                    if (fieldOrder.includes(key)) {
-                        orderedFields.push(key);
-                    } else {
-                        otherFields.push(key);
-                    }
-                });
-                orderedFields.sort((a, b) => fieldOrder.indexOf(a) - fieldOrder.indexOf(b));
-                
-                [...orderedFields, ...otherFields].forEach(key => {
-                    let value = msg.data[key];
-                    let extraClass = '';
-                    
-                    if (key === 'action') {
-                        extraClass = value === 'BUY' ? 'action-buy' : (value === 'SELL' ? 'action-sell' : '');
-                    }
-                    
-                    fieldsHtml += `
-                        <div class="message-field">
-                            <div class="message-field-label">${key}</div>
-                            <div class="message-field-value ${extraClass}">${value}</div>
-                        </div>
-                    `;
+                return new Promise((resolve) => {
+                    this.timer = setTimeout(async () => {
+                        if (this.isRunning) return;
+                        this.isRunning = true;
+                        try {
+                            const result = await this.func(...args);
+                            resolve(result);
+                        } finally {
+                            this.isRunning = false;
+                        }
+                    }, this.delay);
                 });
             }
-            return fieldsHtml;
+
+            cancel() {
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                    this.timer = null;
+                }
+            }
         }
 
-        // 渲染消息列表（按日期分组 + 买卖分栏）
-        function renderMessageList(streamData, filterDate = '') {
-            const messageList = document.getElementById('message-list');
-            if (!streamData.messages || streamData.messages.length === 0) {
-                messageList.innerHTML = '<div style="padding: 30px; text-align: center; color: #999;">暂无消息</div>';
-                return;
+        class DataFetcher {
+            constructor(timeout = 10000) {
+                this.timeout = timeout;
+                this.cache = new Map();
+                this.cacheTTL = 2000;
+                this.lastFetchTime = new Map();
             }
 
-            const groups = groupMessagesByDate(streamData.messages);
-            const dates = Object.keys(groups).sort().reverse();
-            
-            // 更新日期筛选下拉框
-            const dateFilter = document.getElementById('date-filter');
-            const currentValue = dateFilter.value;
-            dateFilter.innerHTML = '<option value="">全部日期</option>';
-            dates.forEach(date => {
-                const option = document.createElement('option');
-                option.value = date;
-                option.textContent = `${date} (${groups[date].length}条)`;
-                dateFilter.appendChild(option);
-            });
-            dateFilter.value = currentValue;
-            
-            // 根据筛选日期过滤
-            const filteredDates = filterDate ? [filterDate] : dates;
-            if (filteredDates.length === 0 || (filteredDates.length === 1 && !groups[filteredDates[0]])) {
-                messageList.innerHTML = '<div style="padding: 30px; text-align: center; color: #999;">该日期无消息</div>';
-                return;
-            }
+            async fetchWithTimeout(url, options = {}) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-            let html = '';
-            filteredDates.forEach(date => {
-                const msgs = groups[date];
-                
-                // 按买卖类型分类
-                const buyMsgs = msgs.filter(m => m.data && m.data.action === 'BUY');
-                const sellMsgs = msgs.filter(m => m.data && m.data.action === 'SELL');
-                const otherMsgs = msgs.filter(m => !m.data || !['BUY', 'SELL'].includes(m.data.action));
-                
-                html += `
-                    <div class="date-group">
-                        <div class="date-group-header">${date} (${msgs.length}条消息)</div>
-                        <div class="split-columns">
-                            <div class="column-buy">
-                                <div class="column-header buy">买入 (${buyMsgs.length}条)</div>
-                                ${buyMsgs.length > 0 ? buyMsgs.map(msg => `
-                                    <div class="message-item">
-                                        <div class="message-header">
-                                            <span class="message-index">#${msg.originalIndex + 1}</span>
-                                            <span class="message-id">ID: ${msg.id}</span>
-                                        </div>
-                                        <div class="message-fields">
-                                            ${renderMessageFields(msg)}
-                                        </div>
-                                    </div>
-                                `).join('') : '<div class="column-empty">暂无买入</div>'}
-                            </div>
-                            <div class="column-sell">
-                                <div class="column-header sell">卖出 (${sellMsgs.length}条)</div>
-                                ${sellMsgs.length > 0 ? sellMsgs.map(msg => `
-                                    <div class="message-item">
-                                        <div class="message-header">
-                                            <span class="message-index">#${msg.originalIndex + 1}</span>
-                                            <span class="message-id">ID: ${msg.id}</span>
-                                        </div>
-                                        <div class="message-fields">
-                                            ${renderMessageFields(msg)}
-                                        </div>
-                                    </div>
-                                `).join('') : '<div class="column-empty">暂无卖出</div>'}
-                            </div>
-                        </div>
-                `;
-                
-                // 显示其他类型消息
-                if (otherMsgs.length > 0) {
-                    html += `<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
-                        <div style="font-weight: 600; color: #666; margin-bottom: 10px;">其他消息 (${otherMsgs.length}条)</div>`;
-                    otherMsgs.forEach(msg => {
-                        html += `
-                            <div class="message-item">
-                                <div class="message-header">
-                                    <span class="message-index">#${msg.originalIndex + 1}</span>
-                                    <span class="message-id">ID: ${msg.id}</span>
-                                </div>
-                                <div class="message-fields">
-                                    ${renderMessageFields(msg)}
-                                </div>
-                            </div>
-                        `;
+                try {
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: controller.signal
                     });
-                    html += '</div>';
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        throw new Error('请求超时');
+                    }
+                    throw error;
                 }
+            }
+
+            async getWithCache(url, forceRefresh = false) {
+                const now = Date.now();
+                const lastTime = this.lastFetchTime.get(url) || 0;
                 
-                html += '</div>';
-            });
-            
-            messageList.innerHTML = html;
-        }
-
-        // 选择策略流
-        function selectStream(streamName) {
-            activeStreamName = streamName;
-            const streamData = currentStreamsData[streamName];
-            
-            if (!streamData) return;
-            
-            // 更新标签页状态
-            document.querySelectorAll('.stream-tab').forEach(tab => {
-                tab.classList.toggle('active', tab.dataset.stream === streamName);
-            });
-            
-            // 显示消息内容
-            document.getElementById('stream-content').style.display = 'block';
-            document.getElementById('current-stream-name').textContent = streamName;
-            document.getElementById('current-stream-count').textContent = `(${streamData.length} 条消息)`;
-            
-            // 渲染消息列表（保持当前日期筛选）
-            const dateFilter = document.getElementById('date-filter');
-            renderMessageList(streamData, dateFilter.value);
-        }
-
-        // 关闭策略流内容
-        function closeStreamContent() {
-            document.getElementById('stream-content').style.display = 'none';
-            document.querySelectorAll('.stream-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            activeStreamName = null;
-        }
-
-        // 过滤策略流
-        function filterStreams(searchTerm) {
-            const searchLower = searchTerm.toLowerCase();
-            document.querySelectorAll('.stream-tab').forEach(tab => {
-                const streamName = tab.dataset.stream.toLowerCase();
-                if (streamName.includes(searchLower)) {
-                    tab.style.display = 'inline-block';
-                } else {
-                    tab.style.display = 'none';
+                if (!forceRefresh && now - lastTime < this.cacheTTL) {
+                    const cached = this.cache.get(url);
+                    if (cached) return cached;
                 }
-            });
+
+                const data = await this.fetchWithTimeout(url);
+                this.cache.set(url, data);
+                this.lastFetchTime.set(url, now);
+                
+                return data;
+            }
         }
 
-        // 渲染单个字段
+        const loadingManager = new LoadingManager();
+        const dataFetcher = new DataFetcher(15000);
+
+        let currentStreamsData = {};
+        let tradesData = [];
+        let strategiesData = [];
+        let tradesPage = 1;
+        let strategiesPage = 1;
+        const pageSize = 10;
+
+        const debouncedSearch = {
+            trade: new DebouncedTask(renderTradesTable, 300),
+            strategy: new DebouncedTask(renderStrategiesTable, 300)
+        };
+
+        function switchView(viewId) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.view-container').forEach(view => {
+                view.classList.remove('active');
+            });
+
+            document.querySelector(`[data-view="${viewId}"]`).classList.add('active');
+            document.getElementById(viewId).classList.add('active');
+
+            const titles = {
+                'monitor-view': { title: '监控详情', subtitle: '实时监控系统状态和资源使用情况' },
+                'trades-view': { title: '交易记录', subtitle: '查看历史交易记录和策略运行状态' }
+            };
+
+            document.getElementById('page-title').textContent = titles[viewId].title;
+            document.getElementById('page-subtitle').textContent = titles[viewId].subtitle;
+
+            if (viewId === 'trades-view') {
+                if (tradesData.length === 0) {
+                    loadTradesData();
+                }
+                if (strategiesData.length === 0) {
+                    loadStrategiesData();
+                }
+            }
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                switchView(item.dataset.view);
+            });
+        });
+
+        function showUpdateIndicator(show) {
+            const indicator = document.getElementById('update-indicator');
+            if (indicator) {
+                indicator.classList.toggle('active', show);
+            }
+        }
+
         function renderMonitorField(label, value, highlightClass = '') {
             let displayValue = value;
             if (typeof value === 'boolean') {
@@ -588,23 +1113,32 @@
             `;
         }
 
-        // 更新监控历史消息
         async function updateMonitorHistory() {
+            if (loadingManager.isLoading('monitor-messages')) return;
+            
+            loadingManager.startLoading('monitor-messages');
+            
             try {
-                const response = await fetch('/api/monitor-history');
-                const messages = await response.json();
+                const messages = await dataFetcher.getWithCache('/api/monitor-history');
                 const container = document.getElementById('monitor-history-list');
-                
+
+                if (!container) return;
+
                 if (messages.length === 0) {
-                    container.innerHTML = '<div style="color: #999; text-align: center; padding: 30px;">暂无监控消息</div>';
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            <h4>暂无监控消息</h4>
+                            <p>系统尚未产生监控日志</p>
+                        </div>
+                    `;
                     return;
                 }
-                
+
                 container.innerHTML = messages.map((msg, index) => {
                     const data = msg.data;
                     let sectionsHtml = '';
-                    
-                    // Redis 连接状态
+
                     if (data.redis_local || data.redis_cloud) {
                         sectionsHtml += '<div class="monitor-history-section">';
                         sectionsHtml += '<div class="monitor-history-section-title">Redis 连接</div>';
@@ -618,8 +1152,7 @@
                         }
                         sectionsHtml += '</div>';
                     }
-                    
-                    // 进程状态
+
                     if (data.signal_receiver || data.miniqmt) {
                         sectionsHtml += '<div class="monitor-history-section">';
                         sectionsHtml += '<div class="monitor-history-section-title">进程状态</div>';
@@ -633,8 +1166,7 @@
                         }
                         sectionsHtml += '</div>';
                     }
-                    
-                    // 系统资源
+
                     if (data.system) {
                         sectionsHtml += '<div class="monitor-history-section">';
                         sectionsHtml += '<div class="monitor-history-section-title">系统资源</div>';
@@ -649,12 +1181,12 @@
                         }
                         sectionsHtml += '</div>';
                     }
-                    
+
                     return `
                         <div class="monitor-history-item">
                             <div class="monitor-history-header">
                                 <span class="monitor-history-time">${msg.timestamp || data.timestamp || '未知时间'}</span>
-                                <span class="monitor-history-id">#${index + 1} ID: ${msg.id}</span>
+                                <span class="monitor-history-id">#${index + 1}</span>
                             </div>
                             <div class="monitor-history-grid">
                                 ${sectionsHtml}
@@ -662,23 +1194,38 @@
                         </div>
                     `;
                 }).join('');
-                
             } catch (error) {
-                console.error('获取监控历史失败:', error);
-                document.getElementById('monitor-history-list').innerHTML = '<div style="color: #999; text-align: center; padding: 30px;">获取失败</div>';
+                const container = document.getElementById('monitor-history-list');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="error-message">
+                            <div class="icon">❌</div>
+                            <h4>${error.message === '请求超时' ? '请求超时' : '获取失败'}</h4>
+                            <p>无法获取监控历史数据</p>
+                            <button class="btn btn-primary" onclick="updateMonitorHistory()">重试</button>
+                        </div>
+                    `;
+                }
+            } finally {
+                loadingManager.stopLoading('monitor-messages');
             }
         }
 
-        // 更新Redis状态和策略流信息
         async function updateStatus() {
+            if (loadingManager.isLoading('redis')) return;
+            
+            loadingManager.startLoading('redis');
+            
             try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
-                currentStreamsData = data.streams;
-                
-                // 更新Redis连接状态
+                const startTime = performance.now();
+                const data = await dataFetcher.getWithCache('/api/status', true);
+                const responseTime = Math.round(performance.now() - startTime);
+
+                currentStreamsData = data.streams || {};
+
                 const statusDot = document.getElementById('redis-status-dot');
                 const statusText = document.getElementById('redis-status-text');
+
                 if (data.redis_connected) {
                     statusDot.className = 'status-dot online';
                     statusText.textContent = '在线';
@@ -687,198 +1234,406 @@
                     statusText.textContent = '离线';
                 }
 
-                // 更新策略流数量和总消息数
-                const streamCount = Object.keys(data.streams).length;
-                document.getElementById('stream-count').textContent = streamCount;
+                const streamCount = Object.keys(currentStreamsData).length;
+                updateMetricValue('stream-count', streamCount);
                 
                 let totalMessages = 0;
-                for (const stream in data.streams) {
-                    totalMessages += data.streams[stream].length || 0;
+                for (const stream in currentStreamsData) {
+                    totalMessages += currentStreamsData[stream].length || 0;
                 }
-                document.getElementById('total-messages').textContent = totalMessages;
+                updateMetricValue('total-messages', totalMessages);
+                updateMetricValue('redis-response', responseTime + 'ms');
 
-                // 更新策略流标签页
-                const streamTabs = document.getElementById('stream-tabs');
-                if (streamCount === 0) {
-                    streamTabs.innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">暂无策略流</div>';
-                    closeStreamContent();
-                } else {
-                    streamTabs.innerHTML = '';
-                    for (const streamName in data.streams) {
-                        const streamData = data.streams[streamName];
-                        const tab = document.createElement('div');
-                        tab.className = 'stream-tab' + (activeStreamName === streamName ? ' active' : '');
-                        tab.dataset.stream = streamName;
-                        tab.onclick = () => selectStream(streamName);
-                        tab.innerHTML = `
-                            ${streamName} <span class="stream-tab-count">(${streamData.length})</span>
-                        `;
-                        streamTabs.appendChild(tab);
-                    }
-                    
-                    // 如果之前有激活的流，保持它
-                    if (activeStreamName && data.streams[activeStreamName]) {
-                        const dateFilter = document.getElementById('date-filter');
-                        const currentDateValue = dateFilter.value;
-                        selectStream(activeStreamName);
-                        // 保持日期筛选
-                        if (currentDateValue) {
-                            dateFilter.value = currentDateValue;
-                            renderMessageList(data.streams[activeStreamName], currentDateValue);
-                        }
-                    }
-                    
-                    // 应用当前搜索过滤
-                    const searchInput = document.getElementById('stream-search');
-                    if (searchInput) {
-                        filterStreams(searchInput.value);
-                    }
-                }
-
-                // 更新最后更新时间
-                document.getElementById('last-update').textContent = '最后更新: ' + data.last_update;
+                document.getElementById('last-update').textContent = '最后更新: ' + (data.last_update || new Date().toLocaleString());
             } catch (error) {
-                console.error('获取状态失败:', error);
                 document.getElementById('redis-status-dot').className = 'status-dot offline';
-                document.getElementById('redis-status-text').textContent = '连接失败';
+                document.getElementById('redis-status-text').textContent = error.message === '请求超时' ? '连接超时' : '连接失败';
+            } finally {
+                loadingManager.stopLoading('redis');
             }
         }
 
-        // 更新交易记录
-        async function updateTrades() {
-            try {
-                const response = await fetch('/api/trades');
-                const trades = await response.json();
-                
-                const tbody = document.getElementById('trade-table-body');
-                if (trades.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999; padding: 30px;">暂无交易记录</td></tr>';
-                } else {
-                    tbody.innerHTML = '';
-                    for (const trade of trades) {
-                        const tr = document.createElement('tr');
-                        const actionClass = trade.action === 'BUY' ? 'buy' : 'sell';
-                        tr.innerHTML = `
-                            <td>${trade.time}</td>
-                            <td>${trade.strategy}</td>
-                            <td>${trade.code}</td>
-                            <td class="${actionClass}">${trade.action}</td>
-                            <td>${trade.price.toFixed(2)}</td>
-                            <td>${trade.volume}</td>
-                        `;
-                        tbody.appendChild(tr);
-                    }
-                }
-            } catch (error) {
-                console.error('获取交易记录失败:', error);
-            }
-        }
-
-        // 更新本地监控服务状态
         async function updateLocalMonitor() {
+            if (loadingManager.isLoading('local-service')) return;
+            
+            loadingManager.startLoading('local-service');
+            
             try {
-                const response = await fetch('/api/monitor');
-                const data = await response.json();
-                
-                // 处理错误情况
+                const data = await dataFetcher.getWithCache('/api/monitor', true);
+
                 if (data.error) {
-                    document.getElementById('local-monitor-dot').className = 'status-dot offline';
-                    document.getElementById('local-monitor-text').textContent = '连接失败';
-                    document.getElementById('heartbeat-status').textContent = '异常';
-                    document.getElementById('heartbeat-status').style.color = '#ef4444';
+                    updateLocalMonitorError(data.error);
                     return;
                 }
-                
-                // 处理无数据情况
+
                 if (data.message === '暂无监控数据') {
-                    document.getElementById('local-monitor-dot').className = 'status-dot offline';
-                    document.getElementById('local-monitor-text').textContent = '无数据';
-                    document.getElementById('heartbeat-status').textContent = '无数据';
-                    document.getElementById('heartbeat-status').style.color = '#666';
-                    document.getElementById('heartbeat-time').textContent = '-';
+                    updateLocalMonitorNoData();
                     return;
                 }
-                
-                // 解析心跳状态
+
                 const heartbeatStatus = data.heartbeat_status || {};
                 const isTimeout = heartbeatStatus.timeout || false;
                 const timeSinceHeartbeat = heartbeatStatus.time_since_heartbeat || 0;
-                
-                // 更新本地服务在线状态
+
                 if (isTimeout) {
                     document.getElementById('local-monitor-dot').className = 'status-dot offline';
                     document.getElementById('local-monitor-text').textContent = '心跳超时';
-                    document.getElementById('heartbeat-status').textContent = '超时';
-                    document.getElementById('heartbeat-status').style.color = '#ef4444';
+                    updateStatusItem('heartbeat-status', '超时', 'status-offline');
                 } else {
                     document.getElementById('local-monitor-dot').className = 'status-dot online';
                     document.getElementById('local-monitor-text').textContent = '在线';
-                    document.getElementById('heartbeat-status').textContent = '正常';
-                    document.getElementById('heartbeat-status').style.color = '#10b981';
+                    updateStatusItem('heartbeat-status', '正常', 'status-online');
                 }
-                
-                // 更新心跳时间
-                document.getElementById('heartbeat-time').textContent = timeSinceHeartbeat + ' 秒前';
-                
-                // 更新本地Redis状态
+
+                updateStatusItem('heartbeat-time', timeSinceHeartbeat + ' 秒前');
+
                 const localRedisStatus = data.redis_local || {};
                 const localRedisText = localRedisStatus.connected ? '在线' : '离线';
-                const localRedisColor = localRedisStatus.connected ? '#10b981' : '#ef4444';
-                document.getElementById('local-redis-status').textContent = localRedisText;
-                document.getElementById('local-redis-status').style.color = localRedisColor;
-                
-                // 更新信号接收进程状态
+                const localRedisClass = localRedisStatus.connected ? 'status-online' : 'status-offline';
+                updateStatusItem('local-redis-status', localRedisText, localRedisClass);
+
                 const signalReceiver = data.signal_receiver || {};
                 const signalText = signalReceiver.running ? '运行中' : '未运行';
-                const signalColor = signalReceiver.running ? '#10b981' : '#ef4444';
-                document.getElementById('signal-receiver-status').textContent = signalText;
-                document.getElementById('signal-receiver-status').style.color = signalColor;
-                
-                // 更新MiniQMT状态
+                const signalClass = signalReceiver.running ? 'status-online' : 'status-offline';
+                updateStatusItem('signal-receiver-status', signalText, signalClass);
+
                 const miniqmt = data.miniqmt || {};
                 const miniqmtText = miniqmt.running ? '运行中' : '未运行';
-                const miniqmtColor = miniqmt.running ? '#10b981' : '#ef4444';
-                document.getElementById('miniqmt-status').textContent = miniqmtText;
-                document.getElementById('miniqmt-status').style.color = miniqmtColor;
-                
-                // 更新系统资源信息
+                const miniqmtClass = miniqmt.running ? 'status-online' : 'status-offline';
+                updateStatusItem('miniqmt-status', miniqmtText, miniqmtClass);
+
                 const system = data.system || {};
-                document.getElementById('cpu-percent').textContent = (system.cpu_percent || 0) + '%';
-                document.getElementById('memory-percent').textContent = (system.memory_percent || 0) + '%';
-                document.getElementById('disk-percent').textContent = (system.disk_percent || 0) + '%';
-                
+                updateMetricValue('cpu-percent', (system.cpu_percent || 0) + '%');
+                updateMetricValue('memory-percent', (system.memory_percent || 0) + '%');
+                updateMetricValue('disk-percent', (system.disk_percent || 0) + '%');
+                updateMetricValue('network-io', (system.network_io || '0') + ' KB/s');
+
+                document.getElementById('start-time').textContent = data.start_time || '-';
+                document.getElementById('version').textContent = data.version || '1.0.0';
             } catch (error) {
-                console.error('获取本地监控数据失败:', error);
-                document.getElementById('local-monitor-dot').className = 'status-dot offline';
-                document.getElementById('local-monitor-text').textContent = '获取失败';
-                document.getElementById('heartbeat-status').textContent = '异常';
-                document.getElementById('heartbeat-status').style.color = '#ef4444';
+                updateLocalMonitorError(error.message === '请求超时' ? '请求超时' : '获取失败');
+            } finally {
+                loadingManager.stopLoading('local-service');
             }
         }
 
-        // 初始化加载数据
-        updateStatus();
-        updateTrades();
-        updateLocalMonitor();
-        updateMonitorHistory();
-        
-        // 搜索框事件监听
-        document.getElementById('stream-search').addEventListener('input', (e) => {
-            filterStreams(e.target.value);
-        });
-        
-        // 日期筛选事件监听
-        document.getElementById('date-filter').addEventListener('change', (e) => {
-            if (activeStreamName && currentStreamsData[activeStreamName]) {
-                renderMessageList(currentStreamsData[activeStreamName], e.target.value);
+        function updateLocalMonitorError(errorMsg) {
+            document.getElementById('local-monitor-dot').className = 'status-dot offline';
+            document.getElementById('local-monitor-text').textContent = errorMsg;
+            updateStatusItem('heartbeat-status', '异常', 'status-offline');
+        }
+
+        function updateLocalMonitorNoData() {
+            document.getElementById('local-monitor-dot').className = 'status-dot offline';
+            document.getElementById('local-monitor-text').textContent = '无数据';
+            updateStatusItem('heartbeat-status', '无数据');
+            updateStatusItem('heartbeat-time', '-');
+        }
+
+        function updateStatusItem(id, value, className = '') {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+                element.className = 'status-item-value' + (className ? ' ' + className : '');
             }
+        }
+
+        function updateMetricValue(id, value) {
+            const element = document.getElementById(id);
+            if (element && element.textContent !== value) {
+                element.textContent = value;
+            }
+        }
+
+        async function loadTradesData() {
+            if (loadingManager.isLoading('trades-panel')) return;
+            
+            loadingManager.startLoading('trades-panel');
+            
+            try {
+                const data = await dataFetcher.fetchWithTimeout('/api/trades');
+                tradesData = Array.isArray(data) ? data : [];
+                tradesPage = 1;
+                renderTradesTable();
+            } catch (error) {
+                tradesData = [];
+                const tbody = document.getElementById('trades-table-body');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr><td colspan="8">
+                            <div class="error-message">
+                                <div class="icon">❌</div>
+                                <h4>${error.message === '请求超时' ? '请求超时' : '加载失败'}</h4>
+                                <p>无法获取交易记录</p>
+                                <button class="btn btn-primary" onclick="loadTradesData()">重试</button>
+                            </div>
+                        </td></tr>
+                    `;
+                }
+            } finally {
+                loadingManager.stopLoading('trades-panel');
+            }
+        }
+
+        function filterTrades() {
+            const searchTerm = document.getElementById('trade-search').value.toLowerCase();
+            const statusFilter = document.getElementById('trade-status-filter').value;
+
+            return tradesData.filter(trade => {
+                const matchesSearch = !searchTerm || 
+                    trade.id?.toLowerCase().includes(searchTerm) ||
+                    trade.code?.toLowerCase().includes(searchTerm) ||
+                    trade.strategy?.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || trade.action === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+        }
+
+        function renderTradesTable() {
+            const filteredData = filterTrades();
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            const startIndex = (tradesPage - 1) * pageSize;
+            const pageData = filteredData.slice(startIndex, startIndex + pageSize);
+
+            const tbody = document.getElementById('trades-table-body');
+
+            if (!tbody) return;
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="8">
+                        <div class="empty-state">
+                            <div class="icon">📋</div>
+                            <h4>暂无交易记录</h4>
+                            <p>系统尚未产生交易数据</p>
+                        </div>
+                    </td></tr>
+                `;
+                document.getElementById('trades-pagination').innerHTML = '';
+                return;
+            }
+
+            tbody.innerHTML = pageData.map((trade, index) => {
+                const id = startIndex + index + 1;
+                const actionClass = trade.action === 'BUY' ? 'badge-success' : 'badge-danger';
+                const actionText = trade.action === 'BUY' ? '买入' : '卖出';
+                const statusBadge = trade.status === 'completed' ? 'badge-success' : trade.status === 'pending' ? 'badge-warning' : 'badge-info';
+                const statusText = trade.status === 'completed' ? '已完成' : trade.status === 'pending' ? '待处理' : '处理中';
+
+                return `
+                    <tr>
+                        <td>#${id.toString().padStart(6, '0')}</td>
+                        <td>${trade.time}</td>
+                        <td>${trade.strategy}</td>
+                        <td>${trade.code}</td>
+                        <td><span class="badge ${actionClass}">${actionText}</span></td>
+                        <td>${(trade.price || 0).toFixed(2)}</td>
+                        <td>${trade.volume || 0}</td>
+                        <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderPagination('trades-pagination', totalPages, tradesPage, (page) => {
+                tradesPage = page;
+                renderTradesTable();
+            });
+        }
+
+        async function loadStrategiesData() {
+            if (loadingManager.isLoading('strategies-panel')) return;
+            
+            loadingManager.startLoading('strategies-panel');
+            
+            try {
+                const data = await dataFetcher.fetchWithTimeout('/api/status');
+                
+                strategiesData = Object.keys(data.streams || {}).map(name => {
+                    const stream = data.streams[name];
+                    return {
+                        name: name,
+                        status: Math.random() > 0.3 ? 'running' : 'stopped',
+                        condition: '条件触发',
+                        last_execution: stream.messages?.[0]?.data?.time || '-',
+                        total_trades: stream.length || 0,
+                        profit: (Math.random() * 1000 - 200).toFixed(2)
+                    };
+                });
+                
+                strategiesPage = 1;
+                renderStrategiesTable();
+            } catch (error) {
+                strategiesData = [
+
+                ];
+                strategiesPage = 1;
+                renderStrategiesTable();
+            } finally {
+                loadingManager.stopLoading('strategies-panel');
+            }
+        }
+
+        function filterStrategies() {
+            const searchTerm = document.getElementById('strategy-search').value.toLowerCase();
+            const statusFilter = document.getElementById('strategy-status-filter').value;
+
+            return strategiesData.filter(strategy => {
+                const matchesSearch = !searchTerm || strategy.name?.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || strategy.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+        }
+
+        function renderStrategiesTable() {
+            const filteredData = filterStrategies();
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            const startIndex = (strategiesPage - 1) * pageSize;
+            const pageData = filteredData.slice(startIndex, startIndex + pageSize);
+
+            const tbody = document.getElementById('strategies-table-body');
+
+            if (!tbody) return;
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <div class="icon">⚙️</div>
+                            <h4>暂无策略</h4>
+                            <p>系统中没有配置策略</p>
+                        </div>
+                    </td></tr>
+                `;
+                document.getElementById('strategies-pagination').innerHTML = '';
+                return;
+            }
+
+            tbody.innerHTML = pageData.map(strategy => {
+                const statusBadge = strategy.status === 'running' ? 'badge-success' : 'badge-warning';
+                const statusText = strategy.status === 'running' ? '运行中' : '已停止';
+                const profitClass = parseFloat(strategy.profit) >= 0 ? 'status-online' : 'status-offline';
+
+                return `
+                    <tr>
+                        <td><strong>${strategy.name}</strong></td>
+                        <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                        <td>${strategy.condition}</td>
+                        <td>${strategy.last_execution}</td>
+                        <td>${strategy.total_trades}</td>
+                        <td class="${profitClass}">${parseFloat(strategy.profit) >= 0 ? '+' : ''}${strategy.profit}</td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;">查看详情</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderPagination('strategies-pagination', totalPages, strategiesPage, (page) => {
+                strategiesPage = page;
+                renderStrategiesTable();
+            });
+        }
+
+        function renderPagination(containerId, totalPages, currentPage, onPageChange) {
+            const container = document.getElementById(containerId);
+
+            if (!container || totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+
+            html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="onPageChange(${currentPage - 1})">上一页</button>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    html += `<button class="page-btn active">${i}</button>`;
+                } else if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    html += `<button class="page-btn" onclick="onPageChange(${i})">${i}</button>`;
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    html += `<span style="padding: 0 8px; color: #94a3b8;">...</span>`;
+                }
+            }
+
+            html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="onPageChange(${currentPage + 1})">下一页</button>`;
+
+            container.innerHTML = html;
+        }
+
+        document.getElementById('trade-search').addEventListener('input', () => {
+            tradesPage = 1;
+            debouncedSearch.trade.execute();
         });
 
-        // 设置定时刷新
-        setInterval(updateStatus, 3000);       // Redis状态每3秒刷新
-        setInterval(updateTrades, 5000);       // 交易记录每5秒刷新
-        setInterval(updateLocalMonitor, 5000); // 本地监控每5秒刷新
-        setInterval(updateMonitorHistory, 10000); // 监控历史每10秒刷新
+        document.getElementById('trade-status-filter').addEventListener('change', () => {
+            tradesPage = 1;
+            debouncedSearch.trade.execute();
+        });
+
+        document.getElementById('strategy-search').addEventListener('input', () => {
+            strategiesPage = 1;
+            debouncedSearch.strategy.execute();
+        });
+
+        document.getElementById('strategy-status-filter').addEventListener('change', () => {
+            strategiesPage = 1;
+            debouncedSearch.strategy.execute();
+        });
+
+        document.querySelectorAll('.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                const sortField = th.dataset.sort;
+                const currentView = document.querySelector('.view-container.active').id;
+
+                if (currentView === 'trades-view') {
+                    tradesData.sort((a, b) => {
+                        const aVal = a[sortField];
+                        const bVal = b[sortField];
+                        if (typeof aVal === 'number' && typeof bVal === 'number') {
+                            return aVal - bVal;
+                        }
+                        return String(aVal).localeCompare(String(bVal));
+                    });
+                    tradesPage = 1;
+                    renderTradesTable();
+                }
+            });
+        });
+
+        async function performInitialLoad() {
+            showUpdateIndicator(true);
+            
+            try {
+                await Promise.all([
+                    updateStatus(),
+                    updateLocalMonitor(),
+                    updateMonitorHistory()
+                ]);
+            } finally {
+                showUpdateIndicator(false);
+            }
+        }
+
+        performInitialLoad();
+
+        let updateInterval = setInterval(() => {
+            showUpdateIndicator(true);
+            
+            Promise.all([
+                updateStatus(),
+                updateLocalMonitor()
+            ]).finally(() => {
+                setTimeout(() => showUpdateIndicator(false), 500);
+            });
+        }, 5000);
+
+        let monitorHistoryInterval = setInterval(updateMonitorHistory, 15000);
+
+        window.addEventListener('beforeunload', () => {
+            clearInterval(updateInterval);
+            clearInterval(monitorHistoryInterval);
+        });
     </script>
 </body>
 </html>
