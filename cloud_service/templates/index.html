@@ -791,99 +791,236 @@
             color: #667eea;
         }
 
-        /* 监控消息历史样式 */
+        /* 监控消息历史样式 - 窄行设计 */
         .monitor-history-list {
-            max-height: 400px;
+            max-height: 350px;
             overflow-y: auto;
-            padding: 12px;
+            padding: 8px;
         }
 
         .monitor-history-item {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            border-left: 4px solid #667eea;
-            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            border-left: 3px solid #667eea;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         .monitor-history-item:hover {
-            background: #f1f5f9;
-            transform: translateX(4px);
+            background: #f8fafc;
+            transform: translateX(2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .monitor-history-item:last-child {
             margin-bottom: 0;
         }
 
-        .monitor-history-header {
+        /* 消息类型图标 */
+        .monitor-history-type {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 12px;
+        }
+
+        .monitor-history-type.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .monitor-history-type.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .monitor-history-type.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .monitor-history-type.info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        /* 消息内容区域 */
+        .monitor-history-content {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .monitor-history-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .monitor-history-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #374151;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .monitor-history-message {
+            font-size: 0.78rem;
+            color: #6b7280;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: 8px;
+        }
+
+        /* 时间戳 */
+        .monitor-history-time {
+            flex-shrink: 0;
+            font-size: 0.72rem;
+            color: #9ca3af;
+            font-family: monospace;
+            margin-left: auto;
+        }
+
+        /* 详情展开按钮 */
+        .monitor-history-expand {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .monitor-history-expand:hover {
+            background: #f3f4f6;
+            color: #667eea;
+        }
+
+        /* 展开的详情面板 */
+        .monitor-history-details {
+            margin-top: 6px;
+            padding: 10px 14px 10px 40px;
+            background: #f8fafc;
+            border-radius: 0 0 8px 8px;
+            font-size: 0.75rem;
+            animation: slideDown 0.2s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .monitor-history-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .monitor-history-detail-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #e2e8f0;
         }
 
-        .monitor-history-time {
-            font-size: 0.8rem;
-            color: #94a3b8;
+        .monitor-history-detail-label {
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .monitor-history-detail-value {
+            color: #4b5563;
             font-family: monospace;
         }
 
-        .monitor-history-id {
-            font-size: 0.75rem;
-            color: #667eea;
-            font-weight: 500;
+        .monitor-history-detail-value.true {
+            color: #10b981;
         }
 
-        .monitor-history-grid {
-            display: grid;
-            gap: 12px;
+        .monitor-history-detail-value.false {
+            color: #ef4444;
         }
 
-        .monitor-history-section {
-            background: #fff;
-            padding: 12px;
-            border-radius: 8px;
-        }
-
-        .monitor-history-section-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #64748b;
-            margin-bottom: 8px;
-        }
-
-        .monitor-history-field {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 0;
-            font-size: 0.85rem;
-        }
-
-        .monitor-history-field-label {
-            color: #94a3b8;
-            min-width: 80px;
-        }
-
-        .monitor-history-field-value {
-            color: #64748b;
-            font-weight: 500;
-            word-break: break-word;
-            white-space: pre-wrap;
-        }
-
-        .monitor-history-field.empty-content {
+        /* 空内容状态 */
+        .monitor-history-empty {
             text-align: center;
             padding: 8px 0;
+            font-size: 0.75rem;
+            color: #9ca3af;
         }
 
-        .monitor-history-field pre {
-            margin: 0;
-            font-family: inherit;
-            font-size: inherit;
+        /* 消息项包装器 */
+        .monitor-history-item-wrapper {
+            margin-bottom: 6px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .monitor-history-list {
+                padding: 4px;
+            }
+            
+            .monitor-history-item {
+                padding: 8px 10px;
+                gap: 8px;
+            }
+            
+            .monitor-history-type {
+                width: 20px;
+                height: 20px;
+                font-size: 10px;
+            }
+            
+            .monitor-history-title {
+                font-size: 0.78rem;
+            }
+            
+            .monitor-history-message {
+                font-size: 0.72rem;
+            }
+            
+            .monitor-history-time {
+                font-size: 0.65rem;
+                display: none; /* 在小屏幕上隐藏时间戳 */
+            }
+            
+            .monitor-history-details-grid {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .monitor-history-time {
+                font-size: 0.68rem;
+            }
         }
 
         @media (max-width: 768px) {
@@ -1947,56 +2084,37 @@
                 
                 container.innerHTML = data.map((msg, index) => {
                     const typeIcon = {
-                        'error': '❌',
-                        'warning': '⚠️',
-                        'success': '✅',
-                        'info': 'ℹ️'
-                    }[msg.type] || '📝';
+                        'error': '✕',
+                        'warning': '⚠',
+                        'success': '✓',
+                        'info': 'ℹ'
+                    }[msg.type] || '●';
                     
-                    const typeClass = {
-                        'error': 'status-offline',
-                        'warning': 'status-warning',
-                        'success': 'status-online',
-                        'info': ''
-                    }[msg.type] || '';
+                    const typeClass = msg.type || 'info';
                     
                     const hasContent = msg.message && msg.message.trim() !== '';
+                    const hasDetails = msg.details && Object.keys(msg.details).length > 0;
                     
                     return `
-                        <div class="monitor-history-item">
-                            <div class="monitor-history-header">
+                        <div class="monitor-history-item-wrapper">
+                            <div class="monitor-history-item" data-msg-id="${msg.id}">
+                                <div class="monitor-history-type ${typeClass}">${typeIcon}</div>
+                                <div class="monitor-history-content">
+                                    <div class="monitor-history-title-row">
+                                        <span class="monitor-history-title">${msg.title || '系统消息'}</span>
+                                    </div>
+                                    <span class="monitor-history-message">${hasContent ? msg.message : '暂无详细内容'}</span>
+                                </div>
                                 <span class="monitor-history-time">${msg.timestamp || '未知时间'}</span>
-                                <span class="monitor-history-id">#${index + 1}</span>
+                                ${hasDetails ? `<button class="monitor-history-expand" onclick="toggleMessageDetails('${msg.id}')">▼</button>` : ''}
                             </div>
-                            <div class="monitor-history-grid">
-                                <div class="monitor-history-section">
-                                    <div class="monitor-history-section-title">${typeIcon} ${msg.title || '系统消息'}</div>
-                                    ${hasContent ? `
-                                    <div class="monitor-history-field">
-                                        <span class="monitor-history-field-label">内容</span>
-                                        <span class="monitor-history-field-value ${typeClass}">${msg.message}</span>
-                                    </div>
-                                    ` : `
-                                    <div class="monitor-history-field empty-content">
-                                        <span class="monitor-history-field-value status-warning">暂无详细内容</span>
-                                    </div>
-                                    `}
+                            ${hasDetails ? `
+                            <div class="monitor-history-details" id="details-${msg.id}" style="display: none;">
+                                <div class="monitor-history-details-grid">
+                                    ${formatDetails(msg.details)}
                                 </div>
-                                ${msg.details && Object.keys(msg.details).length > 0 ? `
-                                <div class="monitor-history-section">
-                                    <div class="monitor-history-section-title">📋 详情</div>
-                                    ${Object.entries(msg.details).map(([key, value]) => {
-                                        const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
-                                        return `
-                                    <div class="monitor-history-field">
-                                        <span class="monitor-history-field-label">${key}</span>
-                                        <span class="monitor-history-field-value">${displayValue}</span>
-                                    </div>
-                                    `;
-                                    }).join('')}
-                                </div>
-                                ` : ''}
                             </div>
+                            ` : ''}
                         </div>
                     `;
                 }).join('');
@@ -2013,6 +2131,58 @@
             } finally {
                 loadingManager.stopLoading('monitor-messages');
             }
+        }
+
+        function toggleMessageDetails(msgId) {
+            const details = document.getElementById(`details-${msgId}`);
+            const expandBtn = document.querySelector(`[data-msg-id="${msgId}"] .monitor-history-expand`);
+            
+            if (details) {
+                const isVisible = details.style.display !== 'none';
+                details.style.display = isVisible ? 'none' : 'block';
+                if (expandBtn) {
+                    expandBtn.textContent = isVisible ? '▼' : '▲';
+                }
+            }
+        }
+
+        function formatDetails(details) {
+            if (!details || typeof details !== 'object') return '';
+            
+            const items = [];
+            
+            // 处理Redis状态
+            if (details.redis_local) {
+                items.push(`<div class="monitor-history-detail-item"><span class="monitor-history-detail-label">本地Redis</span><span class="monitor-history-detail-value ${details.redis_local.connected ? 'true' : 'false'}">${details.redis_local.connected ? '在线' : '离线'}</span></div>`);
+            }
+            if (details.redis_cloud) {
+                items.push(`<div class="monitor-history-detail-item"><span class="monitor-history-detail-label">云端Redis</span><span class="monitor-history-detail-value ${details.redis_cloud.connected ? 'true' : 'false'}">${details.redis_cloud.connected ? '在线' : '离线'}</span></div>`);
+            }
+            
+            // 处理进程状态
+            if (details.signal_receiver) {
+                items.push(`<div class="monitor-history-detail-item"><span class="monitor-history-detail-label">信号进程</span><span class="monitor-history-detail-value ${details.signal_receiver.running ? 'true' : 'false'}">${details.signal_receiver.running ? '运行中' : '未运行'}</span></div>`);
+            }
+            if (details.miniqmt) {
+                items.push(`<div class="monitor-history-detail-item"><span class="monitor-history-detail-label">MiniQMT</span><span class="monitor-history-detail-value ${details.miniqmt.running ? 'true' : 'false'}">${details.miniqmt.running ? '运行中' : '未运行'}</span></div>`);
+            }
+            
+            // 处理系统资源
+            if (details.system) {
+                items.push(`<div class="monitor-history-detail-item"><span class="monitor-history-detail-label">CPU</span><span class="monitor-history-detail-value">${details.system.cpu_percent || 0}%</span></div>`);
+                items.push(`<div class="monitor-history-detail-item"><span class="monitor-history-detail-label">内存</span><span class="monitor-history-detail-value">${details.system.memory_percent || 0}%</span></div>`);
+                items.push(`<div class="monitor-history-detail-item"><span class="monitor-history-detail-label">磁盘</span><span class="monitor-history-detail-value">${details.system.disk_percent || 0}%</span></div>`);
+            }
+            
+            // 处理其他字段
+            for (const [key, value] of Object.entries(details)) {
+                if (['redis_local', 'redis_cloud', 'signal_receiver', 'miniqmt', 'system'].includes(key)) continue;
+                const displayValue = typeof value === 'boolean' ? (value ? '是' : '否') : 
+                                    typeof value === 'object' ? JSON.stringify(value) : String(value);
+                items.push(`<div class="monitor-history-detail-item"><span class="monitor-history-detail-label">${key}</span><span class="monitor-history-detail-value">${displayValue}</span></div>`);
+            }
+            
+            return items.join('');
         }
 
         function renderTrackingList(messages) {
