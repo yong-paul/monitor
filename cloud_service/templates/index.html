@@ -257,6 +257,97 @@
             cursor: not-allowed;
         }
 
+        .filter-section {
+            padding: 12px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .filter-tabs {
+            margin-bottom: 12px;
+        }
+
+        .filter-tabs-header {
+            margin-bottom: 8px;
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #64748b;
+            margin-right: 8px;
+        }
+
+        .filter-tabs-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .strategy-tab {
+            padding: 4px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .strategy-tab:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .strategy-tab.active {
+            background: #667eea;
+            color: #fff;
+            border-color: #667eea;
+        }
+
+        .date-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .date-picker {
+            padding: 4px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .date-separator {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .btn-small {
+            padding: 4px 12px;
+            font-size: 0.85rem;
+        }
+
+        .active-filter-info {
+            padding: 4px 8px;
+            background: #fef3c7;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #d97706;
+            margin-left: 8px;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+            border-color: #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -1355,8 +1446,30 @@
                             <option value="BUY">买入</option>
                             <option value="SELL">卖出</option>
                         </select>
+                        <button class="btn btn-secondary btn-small" id="clear-filters-btn">清除筛选</button>
                     </div>
                 </div>
+                
+                <div class="filter-section">
+                    <div class="filter-tabs" id="strategy-tabs">
+                        <div class="filter-tabs-header">
+                            <span class="filter-label">策略筛选:</span>
+                        </div>
+                        <div class="filter-tabs-content" id="strategy-tabs-content">
+                            <div style="color: #999; text-align: center; padding: 10px;">加载中...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="date-filter">
+                        <span class="filter-label">日期范围:</span>
+                        <input type="date" id="start-date" class="date-picker" placeholder="开始日期">
+                        <span class="date-separator">至</span>
+                        <input type="date" id="end-date" class="date-picker" placeholder="结束日期">
+                        <button class="btn btn-primary btn-small" id="apply-date-filter">应用</button>
+                        <div id="active-date-filter" class="active-filter-info" style="display: none;"></div>
+                    </div>
+                </div>
+                
                 <div class="table-container">
                     <table class="data-table" id="strategies-table">
                         <thead>
@@ -1590,6 +1703,9 @@
         let tradeCategories = {};
         let strategiesPage = 1;
         const pageSize = 10;
+        
+        let activeStrategyFilter = '';
+        let activeDateRange = { start: '', end: '' };
 
         const debouncedSearch = {
             trade: new DebouncedTask(renderTradesTable, 300),
@@ -1966,6 +2082,7 @@
             });
             strategiesData = streamMessages;
             strategiesPage = 1;
+            renderStrategyTabs();
             renderStrategiesTable();
         }
 
@@ -1979,8 +2096,114 @@
                     (item.strategy && item.strategy.toLowerCase().includes(searchTerm)) ||
                     (item.stock_code && item.stock_code.toLowerCase().includes(searchTerm));
                 const matchesAction = !actionFilter || item.action === actionFilter;
-                return matchesSearch && matchesAction;
+                const matchesStrategy = !activeStrategyFilter || item.strategy === activeStrategyFilter;
+                const matchesDate = matchesDateRange(item.create_time);
+                
+                return matchesSearch && matchesAction && matchesStrategy && matchesDate;
             });
+        }
+
+        function matchesDateRange(timestamp) {
+            if (!activeDateRange.start && !activeDateRange.end) {
+                return true;
+            }
+            
+            if (!timestamp) {
+                return false;
+            }
+            
+            const itemDate = new Date(timestamp);
+            const startDate = activeDateRange.start ? new Date(activeDateRange.start) : null;
+            const endDate = activeDateRange.end ? new Date(activeDateRange.end) : null;
+            
+            let matches = true;
+            if (startDate) {
+                matches = matches && itemDate >= startDate;
+            }
+            if (endDate) {
+                const endOfDay = new Date(endDate);
+                endOfDay.setHours(23, 59, 59, 999);
+                matches = matches && itemDate <= endOfDay;
+            }
+            
+            return matches;
+        }
+
+        function renderStrategyTabs() {
+            const strategyNames = [...new Set(strategiesData.map(item => item.strategy).filter(Boolean))];
+            const tabsContent = document.getElementById('strategy-tabs-content');
+            
+            if (strategyNames.length === 0) {
+                tabsContent.innerHTML = '<div style="color: #999; text-align: center; padding: 10px;">暂无策略数据</div>';
+                return;
+            }
+            
+            let html = `<div class="strategy-tab ${!activeStrategyFilter ? 'active' : ''}" data-strategy="">全部策略</div>`;
+            strategyNames.forEach(name => {
+                html += `<div class="strategy-tab ${activeStrategyFilter === name ? 'active' : ''}" data-strategy="${name}">${name}</div>`;
+            });
+            
+            tabsContent.innerHTML = html;
+            
+            tabsContent.querySelectorAll('.strategy-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const strategyName = tab.dataset.strategy;
+                    activeStrategyFilter = strategyName;
+                    
+                    tabsContent.querySelectorAll('.strategy-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    strategiesPage = 1;
+                    renderStrategiesTable();
+                });
+            });
+        }
+
+        function applyDateFilter() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            
+            activeDateRange = { start: startDate, end: endDate };
+            strategiesPage = 1;
+            renderStrategiesTable();
+            updateActiveDateFilterDisplay();
+        }
+
+        function updateActiveDateFilterDisplay() {
+            const displayElement = document.getElementById('active-date-filter');
+            
+            if (activeDateRange.start || activeDateRange.end) {
+                let displayText = '已应用日期筛选: ';
+                if (activeDateRange.start && activeDateRange.end) {
+                    displayText += `${activeDateRange.start} 至 ${activeDateRange.end}`;
+                } else if (activeDateRange.start) {
+                    displayText += `从 ${activeDateRange.start} 开始`;
+                } else {
+                    displayText += `截至 ${activeDateRange.end}`;
+                }
+                displayElement.textContent = displayText;
+                displayElement.style.display = 'inline-block';
+            } else {
+                displayElement.style.display = 'none';
+            }
+        }
+
+        function clearAllFilters() {
+            activeStrategyFilter = '';
+            activeDateRange = { start: '', end: '' };
+            
+            document.getElementById('strategy-search').value = '';
+            document.getElementById('strategy-status-filter').value = '';
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+            
+            document.querySelectorAll('.strategy-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector('.strategy-tab[data-strategy=""]')?.classList.add('active');
+            
+            document.getElementById('active-date-filter').style.display = 'none';
+            
+            strategiesPage = 1;
+            renderStrategiesTable();
         }
 
         function renderStrategiesTable() {
@@ -2399,6 +2622,22 @@
             document.getElementById('strategy-status-filter').addEventListener('change', () => {
                 strategiesPage = 1;
                 debouncedSearch.strategy.run();
+            });
+
+            document.getElementById('apply-date-filter').addEventListener('click', applyDateFilter);
+
+            document.getElementById('clear-filters-btn').addEventListener('click', clearAllFilters);
+
+            document.getElementById('start-date').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    applyDateFilter();
+                }
+            });
+
+            document.getElementById('end-date').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    applyDateFilter();
+                }
             });
         });
 
