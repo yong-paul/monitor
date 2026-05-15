@@ -871,6 +871,19 @@
         .monitor-history-field-value {
             color: #64748b;
             font-weight: 500;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .monitor-history-field.empty-content {
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        .monitor-history-field pre {
+            margin: 0;
+            font-family: inherit;
+            font-size: inherit;
         }
 
         @media (max-width: 768px) {
@@ -1907,6 +1920,8 @@
             try {
                 const data = await dataFetcher.fetchWithTimeout('/api/monitor-history');
                 
+                console.debug('监控消息历史数据:', data);
+                
                 if (data.error) {
                     container.innerHTML = `
                         <div class="error-message">
@@ -1945,6 +1960,8 @@
                         'info': ''
                     }[msg.type] || '';
                     
+                    const hasContent = msg.message && msg.message.trim() !== '';
+                    
                     return `
                         <div class="monitor-history-item">
                             <div class="monitor-history-header">
@@ -1954,19 +1971,29 @@
                             <div class="monitor-history-grid">
                                 <div class="monitor-history-section">
                                     <div class="monitor-history-section-title">${typeIcon} ${msg.title || '系统消息'}</div>
+                                    ${hasContent ? `
                                     <div class="monitor-history-field">
-                                        <span class="monitor-history-field-value ${typeClass}">${msg.message || '-'}</span>
+                                        <span class="monitor-history-field-label">内容</span>
+                                        <span class="monitor-history-field-value ${typeClass}">${msg.message}</span>
                                     </div>
+                                    ` : `
+                                    <div class="monitor-history-field empty-content">
+                                        <span class="monitor-history-field-value status-warning">暂无详细内容</span>
+                                    </div>
+                                    `}
                                 </div>
                                 ${msg.details && Object.keys(msg.details).length > 0 ? `
                                 <div class="monitor-history-section">
-                                    <div class="monitor-history-section-title">详情</div>
-                                    ${Object.entries(msg.details).map(([key, value]) => `
+                                    <div class="monitor-history-section-title">📋 详情</div>
+                                    ${Object.entries(msg.details).map(([key, value]) => {
+                                        const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+                                        return `
                                     <div class="monitor-history-field">
                                         <span class="monitor-history-field-label">${key}</span>
-                                        <span class="monitor-history-field-value">${typeof value === 'object' ? JSON.stringify(value) : value}</span>
+                                        <span class="monitor-history-field-value">${displayValue}</span>
                                     </div>
-                                    `).join('')}
+                                    `;
+                                    }).join('')}
                                 </div>
                                 ` : ''}
                             </div>
@@ -1974,6 +2001,7 @@
                     `;
                 }).join('');
             } catch (error) {
+                console.error('加载监控消息历史失败:', error);
                 container.innerHTML = `
                     <div class="error-message">
                         <div class="icon">❌</div>
