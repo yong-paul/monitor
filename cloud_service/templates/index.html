@@ -211,6 +211,52 @@
             font-size: 0.9rem;
         }
 
+        .panel-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .pagination-info {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .pagination-btn.active {
+            background: #667eea;
+            color: #fff;
+            border-color: #667eea;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -1339,6 +1385,10 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="panel-footer">
+                    <div id="strategies-status" class="status-text"></div>
+                    <div class="pagination" id="strategies-pagination"></div>
+                </div>
             </div>
         </div>
 
@@ -1915,14 +1965,32 @@
                 }
             });
             strategiesData = streamMessages;
+            strategiesPage = 1;
             renderStrategiesTable();
         }
 
+        function filterStrategies() {
+            const searchTerm = document.getElementById('strategy-search').value.toLowerCase();
+            const actionFilter = document.getElementById('strategy-status-filter').value;
+
+            return strategiesData.filter(item => {
+                const matchesSearch = !searchTerm ||
+                    (item.code && item.code.toLowerCase().includes(searchTerm)) ||
+                    (item.strategy && item.strategy.toLowerCase().includes(searchTerm)) ||
+                    (item.stock_code && item.stock_code.toLowerCase().includes(searchTerm));
+                const matchesAction = !actionFilter || item.action === actionFilter;
+                return matchesSearch && matchesAction;
+            });
+        }
+
         function renderStrategiesTable() {
+            const filteredData = filterStrategies();
             const tbody = document.getElementById('strategies-table-body');
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+
             if (!tbody) return;
 
-            if (strategiesData.length === 0) {
+            if (filteredData.length === 0) {
                 tbody.innerHTML = `
                     <tr><td colspan="9">
                         <div class="empty-state">
@@ -1932,10 +2000,17 @@
                         </div>
                     </td></tr>
                 `;
+                document.getElementById('strategies-pagination').innerHTML = '';
+                document.getElementById('strategies-status').textContent = '';
                 return;
             }
 
-            tbody.innerHTML = strategiesData.slice(0, 20).map((item, index) => {
+            const startIndex = (strategiesPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            tbody.innerHTML = pageData.map((item, index) => {
+                const globalIndex = startIndex + index + 1;
                 const actionBadge = item.action === 'BUY' ? 'badge-success' : 'badge-danger';
                 const actionText = item.action === 'BUY' ? '买入' : item.action === 'SELL' ? '卖出' : item.action || '-';
                 const statusBadge = item.status === 'filled' ? 'badge-success' : item.status === 'pending' ? 'badge-warning' : 'badge-info';
@@ -1943,7 +2018,7 @@
 
                 return `
                     <tr>
-                        <td>${index + 1}</td>
+                        <td>${globalIndex}</td>
                         <td>${item.code || '-'}</td>
                         <td>${item.strategy || '-'}</td>
                         <td>${item.stock_code || '-'}</td>
@@ -1955,6 +2030,60 @@
                     </tr>
                 `;
             }).join('');
+
+            renderStrategiesPagination(totalPages, filteredData.length);
+            updateStrategiesStatus(filteredData.length);
+        }
+
+        function renderStrategiesPagination(totalPages, totalItems) {
+            const pagination = document.getElementById('strategies-pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = `
+                <div class="pagination-info">
+                    共 ${totalItems} 条记录，显示第 ${(strategiesPage - 1) * pageSize + 1} - ${Math.min(strategiesPage * pageSize, totalItems)} 条
+                </div>
+                <div class="pagination-buttons">
+                    <button class="pagination-btn" ${strategiesPage === 1 ? 'disabled' : ''} onclick="goToStrategiesPage(1)">首页</button>
+                    <button class="pagination-btn" ${strategiesPage === 1 ? 'disabled' : ''} onclick="goToStrategiesPage(${strategiesPage - 1})">上一页</button>
+            `;
+
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, strategiesPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="pagination-btn ${i === strategiesPage ? 'active' : ''}" onclick="goToStrategiesPage(${i})">${i}</button>`;
+            }
+
+            html += `
+                    <button class="pagination-btn" ${strategiesPage === totalPages ? 'disabled' : ''} onclick="goToStrategiesPage(${strategiesPage + 1})">下一页</button>
+                    <button class="pagination-btn" ${strategiesPage === totalPages ? 'disabled' : ''} onclick="goToStrategiesPage(${totalPages})">末页</button>
+                </div>
+            `;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToStrategiesPage(page) {
+            const totalPages = Math.ceil(filterStrategies().length / pageSize);
+            if (page >= 1 && page <= totalPages && page !== strategiesPage) {
+                strategiesPage = page;
+                renderStrategiesTable();
+            }
+        }
+
+        function updateStrategiesStatus(totalItems) {
+            const statusElement = document.getElementById('strategies-status');
+            statusElement.textContent = `✓ 已加载全部 ${totalItems} 条策略流记录`;
         }
 
         async function loadPerformanceData() {
@@ -2261,6 +2390,16 @@
             updateLocalMonitor();
             loadMonitorHistory();
             startAutoUpdate();
+
+            document.getElementById('strategy-search').addEventListener('input', () => {
+                strategiesPage = 1;
+                debouncedSearch.strategy.run();
+            });
+
+            document.getElementById('strategy-status-filter').addEventListener('change', () => {
+                strategiesPage = 1;
+                debouncedSearch.strategy.run();
+            });
         });
 
         window.addEventListener('beforeunload', () => {
