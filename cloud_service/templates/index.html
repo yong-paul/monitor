@@ -791,6 +791,88 @@
             color: #667eea;
         }
 
+        /* 监控消息历史样式 */
+        .monitor-history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .monitor-history-item {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .monitor-history-item:hover {
+            background: #f1f5f9;
+            transform: translateX(4px);
+        }
+
+        .monitor-history-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .monitor-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .monitor-history-time {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            font-family: monospace;
+        }
+
+        .monitor-history-id {
+            font-size: 0.75rem;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .monitor-history-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .monitor-history-section {
+            background: #fff;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .monitor-history-section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .monitor-history-field {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 0.85rem;
+        }
+
+        .monitor-history-field-label {
+            color: #94a3b8;
+            min-width: 80px;
+        }
+
+        .monitor-history-field-value {
+            color: #64748b;
+            font-weight: 500;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -986,6 +1068,9 @@
                             <h4>加载中...</h4>
                             <p>正在获取监控消息</p>
                         </div>
+                    </div>
+                    <div style="padding: 16px; text-align: center;">
+                        <button class="btn btn-secondary btn-small" onclick="loadMonitorHistory()">🔄 刷新消息</button>
                     </div>
                 </div>
             </div>
@@ -1813,6 +1898,95 @@
             }
         }
 
+        async function loadMonitorHistory() {
+            if (loadingManager.isLoading('monitor-messages')) return;
+            loadingManager.startLoading('monitor-messages');
+            
+            const container = document.getElementById('monitor-history-list');
+            
+            try {
+                const data = await dataFetcher.fetchWithTimeout('/api/monitor-history');
+                
+                if (data.error) {
+                    container.innerHTML = `
+                        <div class="error-message">
+                            <div class="icon">❌</div>
+                            <h4>获取失败</h4>
+                            <p>${data.error}</p>
+                            <button class="btn btn-primary" onclick="loadMonitorHistory()">重试</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                if (!Array.isArray(data) || data.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            <h4>暂无监控消息</h4>
+                            <p>系统尚未产生监控日志，消息将在此显示</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = data.map((msg, index) => {
+                    const typeIcon = {
+                        'error': '❌',
+                        'warning': '⚠️',
+                        'success': '✅',
+                        'info': 'ℹ️'
+                    }[msg.type] || '📝';
+                    
+                    const typeClass = {
+                        'error': 'status-offline',
+                        'warning': 'status-warning',
+                        'success': 'status-online',
+                        'info': ''
+                    }[msg.type] || '';
+                    
+                    return `
+                        <div class="monitor-history-item">
+                            <div class="monitor-history-header">
+                                <span class="monitor-history-time">${msg.timestamp || '未知时间'}</span>
+                                <span class="monitor-history-id">#${index + 1}</span>
+                            </div>
+                            <div class="monitor-history-grid">
+                                <div class="monitor-history-section">
+                                    <div class="monitor-history-section-title">${typeIcon} ${msg.title || '系统消息'}</div>
+                                    <div class="monitor-history-field">
+                                        <span class="monitor-history-field-value ${typeClass}">${msg.message || '-'}</span>
+                                    </div>
+                                </div>
+                                ${msg.details && Object.keys(msg.details).length > 0 ? `
+                                <div class="monitor-history-section">
+                                    <div class="monitor-history-section-title">详情</div>
+                                    ${Object.entries(msg.details).map(([key, value]) => `
+                                    <div class="monitor-history-field">
+                                        <span class="monitor-history-field-label">${key}</span>
+                                        <span class="monitor-history-field-value">${typeof value === 'object' ? JSON.stringify(value) : value}</span>
+                                    </div>
+                                    `).join('')}
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="error-message">
+                        <div class="icon">❌</div>
+                        <h4>${error.message === '请求超时' ? '请求超时' : '加载失败'}</h4>
+                        <p>无法获取监控消息历史</p>
+                        <button class="btn btn-primary" onclick="loadMonitorHistory()">重试</button>
+                    </div>
+                `;
+            } finally {
+                loadingManager.stopLoading('monitor-messages');
+            }
+        }
+
         function renderTrackingList(messages) {
             const container = document.getElementById('tracking-list');
             
@@ -1887,6 +2061,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             updateStatus();
             updateLocalMonitor();
+            loadMonitorHistory();
             startAutoUpdate();
         });
 

@@ -453,6 +453,100 @@ def api_stream_data(stream_name):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/monitor-history')
+def api_monitor_history():
+    """
+    获取监控消息历史API
+    
+    返回最近的监控消息记录，包括系统状态变化、连接状态等。
+    """
+    r = get_redis_client()
+    if not r:
+        return jsonify({'error': 'Redis连接失败'}), 500
+    
+    try:
+        messages = r.xrevrange('monitor:history', count=20)
+        history = []
+        
+        for msg_id, data in messages:
+            history.append({
+                'id': msg_id,
+                'timestamp': data.get('timestamp', ''),
+                'type': data.get('type', 'info'),
+                'title': data.get('title', ''),
+                'message': data.get('message', ''),
+                'details': json.loads(data.get('details', '{}')) if data.get('details') else {}
+            })
+        
+        # 如果没有监控历史记录，返回空数组（不是错误）
+        return jsonify(history)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/system-stats')
+def api_system_stats():
+    """
+    获取系统统计信息API
+    
+    返回系统资源使用情况、消息处理统计等。
+    """
+    r = get_redis_client()
+    if not r:
+        return jsonify({'error': 'Redis连接失败'}), 500
+    
+    try:
+        stats = {
+            'redis_info': {},
+            'message_stats': {
+                'total_processed': 0,
+                'success_count': 0,
+                'failed_count': 0
+            },
+            'stream_stats': {},
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+        # 获取Redis信息
+        try:
+            info = r.info()
+            stats['redis_info'] = {
+                'used_memory': info.get('used_memory_human', 'N/A'),
+                'connected_clients': info.get('connected_clients', 0),
+                'uptime': info.get('uptime_in_seconds', 0),
+                'keyspace_hits': info.get('keyspace_hits', 0),
+                'keyspace_misses': info.get('keyspace_misses', 0)
+            }
+        except:
+            pass
+        
+        # 获取消息跟踪统计
+        try:
+            tracking_messages = r.xrevrange('message:tracking', count=1000)
+            for _, data in tracking_messages:
+                stats['message_stats']['total_processed'] += 1
+                if data.get('status') == 'success':
+                    stats['message_stats']['success_count'] += 1
+                elif data.get('status') == 'failed':
+                    stats['message_stats']['failed_count'] += 1
+        except:
+            pass
+        
+        # 获取Stream统计
+        try:
+            stream_keys = [k for k in r.keys('*') if r.type(k) == 'stream']
+            for key in stream_keys:
+                stats['stream_stats'][key] = {
+                    'length': r.xlen(key)
+                }
+        except:
+            pass
+        
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/health')
 def api_health():
     """健康检查API"""
