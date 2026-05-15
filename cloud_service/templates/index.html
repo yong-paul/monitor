@@ -1440,7 +1440,7 @@
                 <div class="panel-header">
                     <h3 class="panel-title">策略流列表</h3>
                     <div class="panel-actions">
-                        <input type="text" class="search-box" id="strategy-search" placeholder="搜索合约号或策略...">
+                        <input type="text" class="search-box" id="strategy-search" placeholder="搜索股票代码或策略...">
                         <select id="strategy-status-filter" class="search-box" style="min-width: 120px;">
                             <option value="">全部状态</option>
                             <option value="BUY">买入</option>
@@ -1475,19 +1475,18 @@
                         <thead>
                             <tr>
                                 <th>序号</th>
-                                <th>合约号</th>
-                                <th>策略名称</th>
                                 <th>股票代码</th>
+                                <th>策略名称</th>
                                 <th>买卖类型</th>
-                                <th>下单数量</th>
-                                <th>持仓数量</th>
-                                <th>合约状态</th>
+                                <th>下单价格</th>
+                                <th>下单比例</th>
+                                <th>撤单状态</th>
                                 <th>创建时间</th>
                             </tr>
                         </thead>
                         <tbody id="strategies-table-body">
                             <tr>
-                                <td colspan="9">
+                                <td colspan="8">
                                     <div class="empty-state">
                                         <div class="icon">⚙️</div>
                                         <h4>加载中...</h4>
@@ -2068,14 +2067,13 @@
                     stream.messages.forEach(msg => {
                         const msgData = msg.data || {};
                         streamMessages.push({
-                            code: msgData.code,
-                            strategy: name,
-                            stock_code: msgData.stock_code,
-                            action: msgData.action,
-                            order_volume: msgData.order_volume,
-                            position_volume: msgData.position_volume,
-                            status: msgData.status,
-                            create_time: msgData.time || msg.timestamp
+                            code: msgData.code || '',
+                            strategy: msgData.strategy || name,
+                            action: msgData.action || '',
+                            price: parseFloat(msgData.price) || 0,
+                            pct: parseFloat(msgData.pct) || 0,
+                            cancel_order: parseInt(msgData.cancel_order) || 0,
+                            create_time: msgData.time || msg.timestamp || ''
                         });
                     });
                 }
@@ -2093,8 +2091,7 @@
             return strategiesData.filter(item => {
                 const matchesSearch = !searchTerm ||
                     (item.code && item.code.toLowerCase().includes(searchTerm)) ||
-                    (item.strategy && item.strategy.toLowerCase().includes(searchTerm)) ||
-                    (item.stock_code && item.stock_code.toLowerCase().includes(searchTerm));
+                    (item.strategy && item.strategy.toLowerCase().includes(searchTerm));
                 const matchesAction = !actionFilter || item.action === actionFilter;
                 const matchesStrategy = !activeStrategyFilter || item.strategy === activeStrategyFilter;
                 const matchesDate = matchesDateRange(item.create_time);
@@ -2215,7 +2212,7 @@
 
             if (filteredData.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="9">
+                    <tr><td colspan="8">
                         <div class="empty-state">
                             <div class="icon">⚙️</div>
                             <h4>暂无策略流记录</h4>
@@ -2236,19 +2233,18 @@
                 const globalIndex = startIndex + index + 1;
                 const actionBadge = item.action === 'BUY' ? 'badge-success' : 'badge-danger';
                 const actionText = item.action === 'BUY' ? '买入' : item.action === 'SELL' ? '卖出' : item.action || '-';
-                const statusBadge = item.status === 'filled' ? 'badge-success' : item.status === 'pending' ? 'badge-warning' : 'badge-info';
-                const statusText = item.status === 'filled' ? '已成交' : item.status === 'pending' ? '待成交' : item.status || '-';
+                const cancelBadge = item.cancel_order === 1 ? 'badge-danger' : 'badge-success';
+                const cancelText = item.cancel_order === 1 ? '已撤单' : '正常';
 
                 return `
                     <tr>
                         <td>${globalIndex}</td>
                         <td>${item.code || '-'}</td>
                         <td>${item.strategy || '-'}</td>
-                        <td>${item.stock_code || '-'}</td>
                         <td>${item.action ? `<span class="badge ${actionBadge}">${actionText}</span>` : '-'}</td>
-                        <td>${item.order_volume || '-'}</td>
-                        <td>${item.position_volume || '-'}</td>
-                        <td>${item.status ? `<span class="badge ${statusBadge}">${statusText}</span>` : '-'}</td>
+                        <td>¥${item.price.toFixed(2)}</td>
+                        <td>${(item.pct * 100).toFixed(2)}%</td>
+                        <td>${item.cancel_order !== undefined ? `<span class="badge ${cancelBadge}">${cancelText}</span>` : '-'}</td>
                         <td>${item.create_time || '-'}</td>
                     </tr>
                 `;
