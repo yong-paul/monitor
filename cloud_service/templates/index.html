@@ -318,31 +318,48 @@
 
         .data-table th,
         .data-table td {
-            padding: 14px 20px;
+            padding: 12px 16px;
             text-align: left;
             border-bottom: 1px solid #f0f2f5;
             transition: background-color 0.2s ease;
+            font-size: 0.85rem;
+            white-space: nowrap;
         }
 
         .data-table th {
-            background: #f8fafc;
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
             font-weight: 600;
-            color: #71717a;
-            font-size: 0.85rem;
+            color: #64748b;
+            font-size: 0.78rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .data-table td {
-            color: #94a3b8;
+            color: #64748b;
         }
 
         .data-table tr:hover {
-            background: #f8fafc;
+            background: #fafafa;
         }
 
         .data-table tr:last-child td {
             border-bottom: none;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #fff;
+        }
+
+        .data-table tr:nth-child(odd) {
+            background: #fafafa;
+        }
+
+        .data-table tr:hover {
+            background: #f0fdf4;
         }
 
         .badge {
@@ -643,6 +660,14 @@
             animation: pulse 1s infinite;
         }
 
+        @media (max-width: 1024px) {
+            .data-table th,
+            .data-table td {
+                padding: 10px 12px;
+                font-size: 0.8rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -697,10 +722,50 @@
                 min-width: 100%;
             }
 
+            .data-table {
+                font-size: 0.75rem;
+            }
+
             .data-table th,
             .data-table td {
-                padding: 10px 8px;
-                font-size: 0.8rem;
+                padding: 8px 6px;
+                font-size: 0.75rem;
+            }
+
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .page-title {
+                font-size: 1.25rem;
+            }
+
+            .panel-header {
+                padding: 16px;
+            }
+
+            .panel-title {
+                font-size: 1rem;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 6px 4px;
+                font-size: 0.7rem;
+            }
+
+            .badge {
+                padding: 2px 8px;
+                font-size: 0.65rem;
             }
         }
     </style>
@@ -895,11 +960,11 @@
                 <div class="panel-header">
                     <h3 class="panel-title">策略流列表</h3>
                     <div class="panel-actions">
-                        <input type="text" class="search-box" id="strategy-search" placeholder="搜索策略名称...">
+                        <input type="text" class="search-box" id="strategy-search" placeholder="搜索合约号或策略...">
                         <select id="strategy-status-filter" class="search-box" style="min-width: 120px;">
                             <option value="">全部状态</option>
-                            <option value="running">运行中</option>
-                            <option value="stopped">已停止</option>
+                            <option value="BUY">买入</option>
+                            <option value="SELL">卖出</option>
                         </select>
                     </div>
                 </div>
@@ -907,22 +972,26 @@
                     <table class="data-table" id="strategies-table">
                         <thead>
                             <tr>
-                                <th class="sortable" data-sort="name">策略名称</th>
-                                <th class="sortable" data-sort="status">运行状态</th>
-                                <th class="sortable" data-sort="condition">触发条件</th>
-                                <th class="sortable" data-sort="last_execution">最近执行时间</th>
-                                <th class="sortable" data-sort="total_trades">总交易数</th>
-                                <th class="sortable" data-sort="profit">累计收益</th>
-                                <th>操作</th>
+                                <th class="sortable" data-sort="id">序号</th>
+                                <th class="sortable" data-sort="code">合约号</th>
+                                <th class="sortable" data-sort="strategy">策略名称</th>
+                                <th class="sortable" data-sort="stock_code">股票代码</th>
+                                <th class="sortable" data-sort="action">买卖类型</th>
+                                <th class="sortable" data-sort="order_volume">下单数量</th>
+                                <th class="sortable" data-sort="position_volume">持仓数量</th>
+                                <th class="sortable" data-sort="status">合约状态</th>
+                                <th class="sortable" data-sort="position_price">持仓价格</th>
+                                <th class="sortable" data-sort="avg_price">成交均价</th>
+                                <th class="sortable" data-sort="create_time">创建时间</th>
                             </tr>
                         </thead>
                         <tbody id="strategies-table-body">
                             <tr>
-                                <td colspan="7">
+                                <td colspan="11">
                                     <div class="empty-state">
                                         <div class="icon">⚙️</div>
                                         <h4>加载中...</h4>
-                                        <p>正在获取策略列表</p>
+                                        <p>正在获取策略流列表</p>
                                     </div>
                                 </td>
                             </tr>
@@ -1448,24 +1517,40 @@
             try {
                 const data = await dataFetcher.fetchWithTimeout('/api/status');
                 
-                strategiesData = Object.keys(data.streams || {}).map(name => {
+                const streamMessages = [];
+                Object.keys(data.streams || {}).forEach(name => {
                     const stream = data.streams[name];
-                    return {
-                        name: name,
-                        status: Math.random() > 0.3 ? 'running' : 'stopped',
-                        condition: '条件触发',
-                        last_execution: stream.messages?.[0]?.data?.time || '-',
-                        total_trades: stream.length || 0,
-                        profit: (Math.random() * 1000 - 200).toFixed(2)
-                    };
+                    if (stream.messages && stream.messages.length > 0) {
+                        stream.messages.forEach(msg => {
+                            const msgData = msg.data || {};
+                            if (msgData.code && msgData.action) {
+                                streamMessages.push({
+                                    id: msgData.id || msg.id || '-',
+                                    code: msgData.code,
+                                    strategy: name,
+                                    stock_code: msgData.stock_code || msgData.code || '-',
+                                    action: msgData.action,
+                                    order_volume: msgData.order_volume || 0,
+                                    position_volume: msgData.position_volume || 0,
+                                    status: msgData.status || 'pending',
+                                    position_price: msgData.position_price || '0.00',
+                                    avg_price: msgData.avg_price || '0.00',
+                                    create_time: msgData.time || msg.timestamp || '-',
+                                    signal_name: msgData.signal_name || '-',
+                                    qmt_status: msgData.qmt_status || '-',
+                                    qmt_order_id: msgData.qmt_order_id || '-',
+                                    qmt_error_msg: msgData.qmt_error_msg || '-'
+                                });
+                            }
+                        });
+                    }
                 });
                 
+                strategiesData = streamMessages;
                 strategiesPage = 1;
                 renderStrategiesTable();
             } catch (error) {
-                strategiesData = [
-
-                ];
+                strategiesData = [];
                 strategiesPage = 1;
                 renderStrategiesTable();
             } finally {
@@ -1478,8 +1563,10 @@
             const statusFilter = document.getElementById('strategy-status-filter').value;
 
             return strategiesData.filter(strategy => {
-                const matchesSearch = !searchTerm || strategy.name?.toLowerCase().includes(searchTerm);
-                const matchesStatus = !statusFilter || strategy.status === statusFilter;
+                const matchesSearch = !searchTerm || 
+                    strategy.code?.toLowerCase().includes(searchTerm) ||
+                    strategy.strategy?.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || strategy.action === statusFilter;
                 return matchesSearch && matchesStatus;
             });
         }
@@ -1496,11 +1583,11 @@
 
             if (filteredData.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="7">
+                    <tr><td colspan="11">
                         <div class="empty-state">
                             <div class="icon">⚙️</div>
-                            <h4>暂无策略</h4>
-                            <p>系统中没有配置策略</p>
+                            <h4>暂无策略流记录</h4>
+                            <p>系统中没有策略流操作记录</p>
                         </div>
                     </td></tr>
                 `;
@@ -1508,22 +1595,26 @@
                 return;
             }
 
-            tbody.innerHTML = pageData.map(strategy => {
-                const statusBadge = strategy.status === 'running' ? 'badge-success' : 'badge-warning';
-                const statusText = strategy.status === 'running' ? '运行中' : '已停止';
-                const profitClass = parseFloat(strategy.profit) >= 0 ? 'status-online' : 'status-offline';
+            tbody.innerHTML = pageData.map((item, index) => {
+                const rowIndex = startIndex + index + 1;
+                const actionBadge = item.action === 'BUY' ? 'badge-success' : 'badge-danger';
+                const actionText = item.action === 'BUY' ? '买入' : '卖出';
+                const statusBadge = item.status === 'filled' ? 'badge-success' : item.status === 'pending' ? 'badge-warning' : 'badge-info';
+                const statusText = item.status === 'filled' ? '已成交' : item.status === 'pending' ? '待成交' : '部分成交';
 
                 return `
                     <tr>
-                        <td><strong>${strategy.name}</strong></td>
+                        <td>${rowIndex}</td>
+                        <td><span style="color: #64748b;">${item.code}</span></td>
+                        <td><span style="color: #667eea; font-weight: 500;">${item.strategy}</span></td>
+                        <td><span style="color: #3b82f6; font-weight: 500;">${item.stock_code}</span></td>
+                        <td><span class="badge ${actionBadge}">${actionText}</span></td>
+                        <td>${item.order_volume}</td>
+                        <td>${item.position_volume}</td>
                         <td><span class="badge ${statusBadge}">${statusText}</span></td>
-                        <td>${strategy.condition}</td>
-                        <td>${strategy.last_execution}</td>
-                        <td>${strategy.total_trades}</td>
-                        <td class="${profitClass}">${parseFloat(strategy.profit) >= 0 ? '+' : ''}${strategy.profit}</td>
-                        <td>
-                            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;">查看详情</button>
-                        </td>
+                        <td>${item.position_price}</td>
+                        <td>${item.avg_price}</td>
+                        <td>${item.create_time}</td>
                     </tr>
                 `;
             }).join('');
