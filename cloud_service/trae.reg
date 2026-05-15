@@ -1,0 +1,22 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\Trae]
+"icon"="\"D:\\Program Files (x86)\\Trae CN\\Trae CN.exe\""
+@="用Trae打开文件夹"
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\Trae\command]
+@="\"D:\\Program Files (x86)\\Trae CN\\Trae CN.exe\" \"%V\""
+
+[HKEY_CLASSES_ROOT\Directory\shell\Trae]
+"icon"="\"D:\\Program Files (x86)\\Trae CN\\Trae CN.exe\""
+@="用Trae打开文件夹"
+
+[HKEY_CLASSES_ROOT\Directory\shell\Trae\command]
+@="\"D:\\Program Files (x86)\\Trae CN\\Trae CN.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\*\shell\Trae]
+@="用Trae打开"
+"icon"="\"D:\\Program Files (x86)\\Trae CN\\Trae CN.exe\""
+
+[HKEY_CLASSES_ROOT\*\shell\Trae\Command]
+@="\"D:\\Program Files (x86)\\Trae CN\\Trae CN.exe\" \"%1\""

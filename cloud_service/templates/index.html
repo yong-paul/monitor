@@ -14,7 +14,7 @@
         }
 
         .sidebar {
-            width: 200px;
+            width: 220px;
             background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
             padding: 20px 0;
             display: flex;
@@ -79,7 +79,7 @@
 
         .main-content {
             flex: 1;
-            margin-left: 200px;
+            margin-left: 220px;
             min-height: 100vh;
             padding: 30px;
         }
@@ -108,9 +108,38 @@
             font-size: 0.85rem;
         }
 
+        /* 分类标签 */
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: #fff;
+            color: #64748b;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .category-tab:hover {
+            background: #f1f5f9;
+        }
+
+        .category-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 24px;
             margin-bottom: 30px;
         }
@@ -143,10 +172,6 @@
             font-size: 1.15rem;
             font-weight: 600;
             color: #64748b;
-        }
-
-        #system-resources-card .card-title {
-            color: #1a1a2e;
         }
 
         .status-indicator {
@@ -188,7 +213,7 @@
 
         .metric-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             gap: 16px;
         }
 
@@ -213,12 +238,12 @@
             color: #a1a1aa;
         }
 
-        #system-resources-card .metric-value {
-            color: #667eea;
+        .metric-value.positive {
+            color: #10b981;
         }
 
-        #system-resources-card .metric-label {
-            color: #64748b;
+        .metric-value.negative {
+            color: #ef4444;
         }
 
         .status-list {
@@ -270,6 +295,7 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             overflow: hidden;
             position: relative;
+            margin-bottom: 24px;
         }
 
         .panel-header {
@@ -278,6 +304,8 @@
             align-items: center;
             padding: 20px 24px;
             border-bottom: 2px solid #f0f2f5;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .panel-title {
@@ -290,6 +318,7 @@
             display: flex;
             gap: 12px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .search-box {
@@ -297,7 +326,7 @@
             border: 1px solid #e2e8f0;
             border-radius: 8px;
             font-size: 0.9rem;
-            min-width: 200px;
+            min-width: 180px;
             transition: border-color 0.3s ease;
             color: #64748b;
         }
@@ -348,18 +377,6 @@
 
         .data-table tr:last-child td {
             border-bottom: none;
-        }
-
-        .data-table tr:nth-child(even) {
-            background: #fff;
-        }
-
-        .data-table tr:nth-child(odd) {
-            background: #fafafa;
-        }
-
-        .data-table tr:hover {
-            background: #f0fdf4;
         }
 
         .badge {
@@ -419,6 +436,11 @@
             background: #e2e8f0;
         }
 
+        .btn-small {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+        }
+
         .pagination {
             display: flex;
             justify-content: center;
@@ -466,14 +488,8 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .loading-overlay {
@@ -524,102 +540,6 @@
             margin-bottom: 16px;
         }
 
-        .error-message h4 {
-            margin-bottom: 8px;
-        }
-
-        .error-message p {
-            color: #999;
-            margin-bottom: 16px;
-        }
-
-        .monitor-history-list {
-            max-height: 350px;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        .monitor-history-item {
-            padding: 16px;
-            border-bottom: 1px solid #f0f2f5;
-            background: #fafafa;
-            margin-bottom: 8px;
-            border-radius: 12px;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        .monitor-history-item:last-child {
-            border-bottom: none;
-        }
-
-        .monitor-history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .monitor-history-time {
-            font-weight: 600;
-            color: #71717a;
-            font-size: 0.95rem;
-        }
-
-        .monitor-history-id {
-            color: #a1a1aa;
-            font-size: 0.8rem;
-        }
-
-        .monitor-history-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-        }
-
-        .monitor-history-section {
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .monitor-history-section-title {
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: #71717a;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .monitor-history-field {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            font-size: 0.85rem;
-        }
-
-        .monitor-history-field-label {
-            color: #a1a1aa;
-        }
-
-        .monitor-history-field-value {
-            font-weight: 500;
-            color: #94a3b8;
-        }
-
-        .sortable {
-            cursor: pointer;
-            position: relative;
-        }
-
-        .sortable::after {
-            content: '↕';
-            margin-left: 6px;
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
-
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -660,12 +580,215 @@
             animation: pulse 1s infinite;
         }
 
-        @media (max-width: 1024px) {
-            .data-table th,
-            .data-table td {
-                padding: 10px 12px;
-                font-size: 0.8rem;
-            }
+        /* 交易详情弹窗 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .modal-header h3 {
+            font-size: 1.2rem;
+            color: #64748b;
+        }
+
+        .close-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #64748b;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .detail-item {
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            display: block;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .detail-value.highlight {
+            color: #667eea;
+        }
+
+        .detail-value.price {
+            color: #10b981;
+            font-size: 1.1rem;
+        }
+
+        .detail-value.amount {
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        /* 统计卡片 */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .chart-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* 消息跟踪 */
+        .message-tracking-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .tracking-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid #f0f2f5;
+            transition: background 0.2s;
+        }
+
+        .tracking-item:hover {
+            background: #f8fafc;
+        }
+
+        .tracking-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .tracking-status.success { background: #10b981; }
+        .tracking-status.failed { background: #ef4444; }
+        .tracking-status.processing { background: #f59e0b; }
+        .tracking-status.pending { background: #94a3b8; }
+
+        .tracking-info {
+            flex: 1;
+        }
+
+        .tracking-msg-id {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-family: monospace;
+        }
+
+        .tracking-time {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .tracking-strategy {
+            font-size: 0.85rem;
+            color: #667eea;
         }
 
         @media (max-width: 768px) {
@@ -708,13 +831,11 @@
 
             .panel-header {
                 flex-direction: column;
-                gap: 12px;
                 align-items: flex-start;
             }
 
             .panel-actions {
                 width: 100%;
-                flex-wrap: wrap;
             }
 
             .search-box {
@@ -722,50 +843,8 @@
                 min-width: 100%;
             }
 
-            .data-table {
-                font-size: 0.75rem;
-            }
-
-            .data-table th,
-            .data-table td {
-                padding: 8px 6px;
-                font-size: 0.75rem;
-            }
-
-            .table-container {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .page-header {
-                flex-direction: column;
-                gap: 12px;
-                align-items: flex-start;
-            }
-
-            .page-title {
-                font-size: 1.25rem;
-            }
-
-            .panel-header {
-                padding: 16px;
-            }
-
-            .panel-title {
-                font-size: 1rem;
-            }
-
-            .data-table th,
-            .data-table td {
-                padding: 6px 4px;
-                font-size: 0.7rem;
-            }
-
-            .badge {
-                padding: 2px 8px;
-                font-size: 0.65rem;
+            .detail-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -785,6 +864,14 @@
                 <span class="icon">📈</span>
                 <span>交易记录</span>
             </div>
+            <div class="nav-item" data-view="performance-view">
+                <span class="icon">💰</span>
+                <span>收益分析</span>
+            </div>
+            <div class="nav-item" data-view="tracking-view">
+                <span class="icon">📡</span>
+                <span>消息跟踪</span>
+            </div>
         </nav>
     </aside>
 
@@ -803,6 +890,7 @@
             </div>
         </div>
 
+        <!-- 监控视图 -->
         <div id="monitor-view" class="view-container active">
             <div class="dashboard">
                 <div class="card" id="redis-card">
@@ -860,14 +948,6 @@
                             <span class="status-item-label">MiniQMT</span>
                             <span class="status-item-value" id="miniqmt-status">检查中...</span>
                         </div>
-                        <div class="status-item">
-                            <span class="status-item-label">启动时间</span>
-                            <span class="status-item-value" id="start-time">-</span>
-                        </div>
-                        <div class="status-item">
-                            <span class="status-item-label">版本信息</span>
-                            <span class="status-item-value" id="version">-</span>
-                        </div>
                     </div>
                 </div>
 
@@ -911,17 +991,43 @@
             </div>
         </div>
 
+        <!-- 交易记录视图 -->
         <div id="trades-view" class="view-container">
-            <div class="panel" style="margin-bottom: 24px;">
+            <div class="stats-overview" id="trades-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-trades">-</div>
+                    <div class="stat-label">总交易笔数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-amount">-</div>
+                    <div class="stat-label">交易总金额</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="buy-count">-</div>
+                    <div class="stat-label">买入笔数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="sell-count">-</div>
+                    <div class="stat-label">卖出笔数</div>
+                </div>
+            </div>
+
+            <div class="category-tabs" id="trade-category-tabs">
+                <button class="category-tab active" data-category="all">全部</button>
+                <button class="category-tab" data-category="BUY">买入</button>
+                <button class="category-tab" data-category="SELL">卖出</button>
+                <button class="category-tab" data-category="filled">已成交</button>
+                <button class="category-tab" data-category="pending">待成交</button>
+            </div>
+
+            <div class="panel">
                 <div class="loading-overlay" id="trades-panel-loading"></div>
                 <div class="panel-header">
                     <h3 class="panel-title">最近交易记录</h3>
                     <div class="panel-actions">
                         <input type="text" class="search-box" id="trade-search" placeholder="搜索交易ID或代码...">
-                        <select id="trade-status-filter" class="search-box" style="min-width: 120px;">
-                            <option value="">全部状态</option>
-                            <option value="BUY">买入</option>
-                            <option value="SELL">卖出</option>
+                        <select id="strategy-select" class="search-box" style="min-width: 140px;">
+                            <option value="">所有策略</option>
                         </select>
                     </div>
                 </div>
@@ -934,14 +1040,16 @@
                                 <th class="sortable" data-sort="strategy">策略</th>
                                 <th class="sortable" data-sort="code">代码</th>
                                 <th class="sortable" data-sort="action">操作</th>
-                                <th class="sortable" data-sort="price">价格</th>
+                                <th class="sortable" data-sort="price">成交价格</th>
                                 <th class="sortable" data-sort="volume">数量</th>
+                                <th class="sortable" data-sort="amount">金额</th>
                                 <th class="sortable" data-sort="status">状态</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="trades-table-body">
                             <tr>
-                                <td colspan="8">
+                                <td colspan="10">
                                     <div class="empty-state">
                                         <div class="icon">📋</div>
                                         <h4>加载中...</h4>
@@ -972,22 +1080,20 @@
                     <table class="data-table" id="strategies-table">
                         <thead>
                             <tr>
-                                <th class="sortable" data-sort="id">序号</th>
-                                <th class="sortable" data-sort="code">合约号</th>
-                                <th class="sortable" data-sort="strategy">策略名称</th>
-                                <th class="sortable" data-sort="stock_code">股票代码</th>
-                                <th class="sortable" data-sort="action">买卖类型</th>
-                                <th class="sortable" data-sort="order_volume">下单数量</th>
-                                <th class="sortable" data-sort="position_volume">持仓数量</th>
-                                <th class="sortable" data-sort="status">合约状态</th>
-                                <th class="sortable" data-sort="position_price">持仓价格</th>
-                                <th class="sortable" data-sort="avg_price">成交均价</th>
-                                <th class="sortable" data-sort="create_time">创建时间</th>
+                                <th>序号</th>
+                                <th>合约号</th>
+                                <th>策略名称</th>
+                                <th>股票代码</th>
+                                <th>买卖类型</th>
+                                <th>下单数量</th>
+                                <th>持仓数量</th>
+                                <th>合约状态</th>
+                                <th>创建时间</th>
                             </tr>
                         </thead>
                         <tbody id="strategies-table-body">
                             <tr>
-                                <td colspan="11">
+                                <td colspan="9">
                                     <div class="empty-state">
                                         <div class="icon">⚙️</div>
                                         <h4>加载中...</h4>
@@ -998,15 +1104,117 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="pagination" id="strategies-pagination"></div>
+            </div>
+        </div>
+
+        <!-- 收益分析视图 -->
+        <div id="performance-view" class="view-container">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">策略收益分析</h3>
+                    <div class="panel-actions">
+                        <select id="performance-strategy-select" class="search-box" style="min-width: 180px;">
+                            <option value="">选择策略</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-body" style="padding: 24px;">
+                    <div class="stats-overview">
+                        <div class="stat-card">
+                            <div class="stat-value" id="perf-total-trades">-</div>
+                            <div class="stat-label">总交易笔数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="perf-total-amount">-</div>
+                            <div class="stat-label">交易总金额</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="perf-profit">-</div>
+                            <div class="stat-label">累计收益</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="perf-profit-rate">-</div>
+                            <div class="stat-label">收益率</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div class="chart-placeholder" id="performance-chart">
+                            <div>📈 收益趋势图表</div>
+                        </div>
+                    </div>
+
+                    <h4 style="margin: 24px 0 16px; color: #64748b;">持仓明细</h4>
+                    <div id="positions-list">
+                        <div class="empty-state">
+                            <div class="icon">📊</div>
+                            <h4>暂无持仓数据</h4>
+                            <p>选择策略后查看持仓详情</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消息跟踪视图 -->
+        <div id="tracking-view" class="view-container">
+            <div class="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-value" id="tracking-total">-</div>
+                    <div class="stat-label">总消息数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="tracking-success">-</div>
+                    <div class="stat-label">成功处理</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="tracking-failed">-</div>
+                    <div class="stat-label">处理失败</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="tracking-processing">-</div>
+                    <div class="stat-label">处理中</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">消息处理状态</h3>
+                </div>
+                <div class="modal-body" style="padding: 12px;">
+                    <div class="message-tracking-list" id="tracking-list">
+                        <div class="empty-state">
+                            <div class="icon">📡</div>
+                            <h4>暂无消息跟踪数据</h4>
+                            <p>消息跟踪数据将在此显示</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
+    <!-- 交易详情弹窗 -->
+    <div class="modal-overlay" id="trade-detail-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>交易详情</h3>
+                <span class="close-btn" onclick="closeTradeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-grid" id="trade-detail-content">
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <h4>加载中...</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         class LoadingManager {
             constructor() {
-                this.activeRequests = new Set();
                 this.loadingStates = {};
             }
 
@@ -1036,10 +1244,7 @@
             }
 
             execute(...args) {
-                if (this.timer) {
-                    clearTimeout(this.timer);
-                }
-                
+                if (this.timer) clearTimeout(this.timer);
                 return new Promise((resolve) => {
                     this.timer = setTimeout(async () => {
                         if (this.isRunning) return;
@@ -1052,13 +1257,6 @@
                         }
                     }, this.delay);
                 });
-            }
-
-            cancel() {
-                if (this.timer) {
-                    clearTimeout(this.timer);
-                    this.timer = null;
-                }
             }
         }
 
@@ -1073,24 +1271,14 @@
             async fetchWithTimeout(url, options = {}) {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
                 try {
-                    const response = await fetch(url, {
-                        ...options,
-                        signal: controller.signal
-                    });
+                    const response = await fetch(url, { ...options, signal: controller.signal });
                     clearTimeout(timeoutId);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return await response.json();
                 } catch (error) {
                     clearTimeout(timeoutId);
-                    if (error.name === 'AbortError') {
-                        throw new Error('请求超时');
-                    }
+                    if (error.name === 'AbortError') throw new Error('请求超时');
                     throw error;
                 }
             }
@@ -1098,16 +1286,13 @@
             async getWithCache(url, forceRefresh = false) {
                 const now = Date.now();
                 const lastTime = this.lastFetchTime.get(url) || 0;
-                
                 if (!forceRefresh && now - lastTime < this.cacheTTL) {
                     const cached = this.cache.get(url);
                     if (cached) return cached;
                 }
-
                 const data = await this.fetchWithTimeout(url);
                 this.cache.set(url, data);
                 this.lastFetchTime.set(url, now);
-                
                 return data;
             }
         }
@@ -1115,10 +1300,9 @@
         const loadingManager = new LoadingManager();
         const dataFetcher = new DataFetcher(15000);
 
-        let currentStreamsData = {};
         let tradesData = [];
         let strategiesData = [];
-        let tradesPage = 1;
+        let tradeCategories = {};
         let strategiesPage = 1;
         const pageSize = 10;
 
@@ -1128,161 +1312,42 @@
         };
 
         function switchView(viewId) {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            document.querySelectorAll('.view-container').forEach(view => {
-                view.classList.remove('active');
-            });
-
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.view-container').forEach(view => view.classList.remove('active'));
+            
             document.querySelector(`[data-view="${viewId}"]`).classList.add('active');
             document.getElementById(viewId).classList.add('active');
 
             const titles = {
                 'monitor-view': { title: '监控详情', subtitle: '实时监控系统状态和资源使用情况' },
-                'trades-view': { title: '交易记录', subtitle: '查看历史交易记录和策略运行状态' }
+                'trades-view': { title: '交易记录', subtitle: '查看历史交易记录和策略运行状态' },
+                'performance-view': { title: '收益分析', subtitle: '分析策略收益表现和持仓情况' },
+                'tracking-view': { title: '消息跟踪', subtitle: '追踪消息处理状态和历史记录' }
             };
 
             document.getElementById('page-title').textContent = titles[viewId].title;
             document.getElementById('page-subtitle').textContent = titles[viewId].subtitle;
 
             if (viewId === 'trades-view') {
-                if (tradesData.length === 0) {
-                    loadTradesData();
-                }
-                if (strategiesData.length === 0) {
-                    loadStrategiesData();
-                }
+                loadTradesData();
+                loadTradeCategories();
+            } else if (viewId === 'performance-view') {
+                loadPerformanceData();
+            } else if (viewId === 'tracking-view') {
+                loadTrackingData();
             }
         }
 
         document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                switchView(item.dataset.view);
-            });
+            item.addEventListener('click', () => switchView(item.dataset.view));
         });
 
         function showUpdateIndicator(show) {
-            const indicator = document.getElementById('update-indicator');
-            if (indicator) {
-                indicator.classList.toggle('active', show);
-            }
-        }
-
-        function renderMonitorField(label, value, highlightClass = '') {
-            let displayValue = value;
-            if (typeof value === 'boolean') {
-                displayValue = value ? '是' : '否';
-            }
-            return `
-                <div class="monitor-history-field">
-                    <span class="monitor-history-field-label">${label}</span>
-                    <span class="monitor-history-field-value ${highlightClass}">${displayValue}</span>
-                </div>
-            `;
-        }
-
-        async function updateMonitorHistory() {
-            if (loadingManager.isLoading('monitor-messages')) return;
-            
-            loadingManager.startLoading('monitor-messages');
-            
-            try {
-                const messages = await dataFetcher.getWithCache('/api/monitor-history');
-                const container = document.getElementById('monitor-history-list');
-
-                if (!container) return;
-
-                if (messages.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div class="icon">📭</div>
-                            <h4>暂无监控消息</h4>
-                            <p>系统尚未产生监控日志</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = messages.map((msg, index) => {
-                    const data = msg.data;
-                    let sectionsHtml = '';
-
-                    if (data.redis_local || data.redis_cloud) {
-                        sectionsHtml += '<div class="monitor-history-section">';
-                        sectionsHtml += '<div class="monitor-history-section-title">Redis 连接</div>';
-                        if (data.redis_local) {
-                            const localClass = data.redis_local.connected ? 'status-online' : 'status-offline';
-                            sectionsHtml += renderMonitorField('本地', data.redis_local.connected ? '在线' : '离线', localClass);
-                        }
-                        if (data.redis_cloud) {
-                            const cloudClass = data.redis_cloud.connected ? 'status-online' : 'status-offline';
-                            sectionsHtml += renderMonitorField('云端', data.redis_cloud.connected ? '在线' : '离线', cloudClass);
-                        }
-                        sectionsHtml += '</div>';
-                    }
-
-                    if (data.signal_receiver || data.miniqmt) {
-                        sectionsHtml += '<div class="monitor-history-section">';
-                        sectionsHtml += '<div class="monitor-history-section-title">进程状态</div>';
-                        if (data.signal_receiver) {
-                            const recvClass = data.signal_receiver.running ? 'status-online' : 'status-offline';
-                            sectionsHtml += renderMonitorField('信号接收', data.signal_receiver.running ? '运行中' : '未运行', recvClass);
-                        }
-                        if (data.miniqmt) {
-                            const miniClass = data.miniqmt.running ? 'status-online' : 'status-offline';
-                            sectionsHtml += renderMonitorField('MiniQMT', data.miniqmt.running ? '运行中' : '未运行', miniClass);
-                        }
-                        sectionsHtml += '</div>';
-                    }
-
-                    if (data.system) {
-                        sectionsHtml += '<div class="monitor-history-section">';
-                        sectionsHtml += '<div class="monitor-history-section-title">系统资源</div>';
-                        if (data.system.cpu_percent !== undefined) {
-                            sectionsHtml += renderMonitorField('CPU', data.system.cpu_percent + '%');
-                        }
-                        if (data.system.memory_percent !== undefined) {
-                            sectionsHtml += renderMonitorField('内存', data.system.memory_percent + '%');
-                        }
-                        if (data.system.disk_percent !== undefined) {
-                            sectionsHtml += renderMonitorField('磁盘', data.system.disk_percent + '%');
-                        }
-                        sectionsHtml += '</div>';
-                    }
-
-                    return `
-                        <div class="monitor-history-item">
-                            <div class="monitor-history-header">
-                                <span class="monitor-history-time">${msg.timestamp || data.timestamp || '未知时间'}</span>
-                                <span class="monitor-history-id">#${index + 1}</span>
-                            </div>
-                            <div class="monitor-history-grid">
-                                ${sectionsHtml}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                const container = document.getElementById('monitor-history-list');
-                if (container) {
-                    container.innerHTML = `
-                        <div class="error-message">
-                            <div class="icon">❌</div>
-                            <h4>${error.message === '请求超时' ? '请求超时' : '获取失败'}</h4>
-                            <p>无法获取监控历史数据</p>
-                            <button class="btn btn-primary" onclick="updateMonitorHistory()">重试</button>
-                        </div>
-                    `;
-                }
-            } finally {
-                loadingManager.stopLoading('monitor-messages');
-            }
+            document.getElementById('update-indicator').classList.toggle('active', show);
         }
 
         async function updateStatus() {
             if (loadingManager.isLoading('redis')) return;
-            
             loadingManager.startLoading('redis');
             
             try {
@@ -1290,30 +1355,21 @@
                 const data = await dataFetcher.getWithCache('/api/status', true);
                 const responseTime = Math.round(performance.now() - startTime);
 
-                currentStreamsData = data.streams || {};
+                document.getElementById('redis-status-dot').className = data.redis_connected ? 'status-dot online' : 'status-dot offline';
+                document.getElementById('redis-status-text').textContent = data.redis_connected ? '在线' : '离线';
 
-                const statusDot = document.getElementById('redis-status-dot');
-                const statusText = document.getElementById('redis-status-text');
-
-                if (data.redis_connected) {
-                    statusDot.className = 'status-dot online';
-                    statusText.textContent = '在线';
-                } else {
-                    statusDot.className = 'status-dot offline';
-                    statusText.textContent = '离线';
-                }
-
-                const streamCount = Object.keys(currentStreamsData).length;
+                const streamCount = Object.keys(data.streams || {}).length;
                 updateMetricValue('stream-count', streamCount);
                 
                 let totalMessages = 0;
-                for (const stream in currentStreamsData) {
-                    totalMessages += currentStreamsData[stream].length || 0;
+                for (const stream in data.streams) {
+                    totalMessages += (data.streams[stream].length || 0);
                 }
                 updateMetricValue('total-messages', totalMessages);
                 updateMetricValue('redis-response', responseTime + 'ms');
-
                 document.getElementById('last-update').textContent = '最后更新: ' + (data.last_update || new Date().toLocaleString());
+
+                loadStrategiesFromStreams(data.streams || {});
             } catch (error) {
                 document.getElementById('redis-status-dot').className = 'status-dot offline';
                 document.getElementById('redis-status-text').textContent = error.message === '请求超时' ? '连接超时' : '连接失败';
@@ -1324,7 +1380,6 @@
 
         async function updateLocalMonitor() {
             if (loadingManager.isLoading('local-service')) return;
-            
             loadingManager.startLoading('local-service');
             
             try {
@@ -1357,28 +1412,22 @@
                 updateStatusItem('heartbeat-time', timeSinceHeartbeat + ' 秒前');
 
                 const localRedisStatus = data.redis_local || {};
-                const localRedisText = localRedisStatus.connected ? '在线' : '离线';
-                const localRedisClass = localRedisStatus.connected ? 'status-online' : 'status-offline';
-                updateStatusItem('local-redis-status', localRedisText, localRedisClass);
+                updateStatusItem('local-redis-status', localRedisStatus.connected ? '在线' : '离线', 
+                    localRedisStatus.connected ? 'status-online' : 'status-offline');
 
                 const signalReceiver = data.signal_receiver || {};
-                const signalText = signalReceiver.running ? '运行中' : '未运行';
-                const signalClass = signalReceiver.running ? 'status-online' : 'status-offline';
-                updateStatusItem('signal-receiver-status', signalText, signalClass);
+                updateStatusItem('signal-receiver-status', signalReceiver.running ? '运行中' : '未运行',
+                    signalReceiver.running ? 'status-online' : 'status-offline');
 
                 const miniqmt = data.miniqmt || {};
-                const miniqmtText = miniqmt.running ? '运行中' : '未运行';
-                const miniqmtClass = miniqmt.running ? 'status-online' : 'status-offline';
-                updateStatusItem('miniqmt-status', miniqmtText, miniqmtClass);
+                updateStatusItem('miniqmt-status', miniqmt.running ? '运行中' : '未运行',
+                    miniqmt.running ? 'status-online' : 'status-offline');
 
                 const system = data.system || {};
                 updateMetricValue('cpu-percent', (system.cpu_percent || 0) + '%');
                 updateMetricValue('memory-percent', (system.memory_percent || 0) + '%');
                 updateMetricValue('disk-percent', (system.disk_percent || 0) + '%');
                 updateMetricValue('network-io', (system.network_io || '0') + ' KB/s');
-
-                document.getElementById('start-time').textContent = data.start_time || '-';
-                document.getElementById('version').textContent = data.version || '1.0.0';
             } catch (error) {
                 updateLocalMonitorError(error.message === '请求超时' ? '请求超时' : '获取失败');
             } finally {
@@ -1416,61 +1465,78 @@
 
         async function loadTradesData() {
             if (loadingManager.isLoading('trades-panel')) return;
-            
             loadingManager.startLoading('trades-panel');
             
             try {
                 const data = await dataFetcher.fetchWithTimeout('/api/trades');
                 tradesData = Array.isArray(data) ? data : [];
-                tradesPage = 1;
                 renderTradesTable();
+                populateStrategySelect();
             } catch (error) {
                 tradesData = [];
-                const tbody = document.getElementById('trades-table-body');
-                if (tbody) {
-                    tbody.innerHTML = `
-                        <tr><td colspan="8">
-                            <div class="error-message">
-                                <div class="icon">❌</div>
-                                <h4>${error.message === '请求超时' ? '请求超时' : '加载失败'}</h4>
-                                <p>无法获取交易记录</p>
-                                <button class="btn btn-primary" onclick="loadTradesData()">重试</button>
-                            </div>
-                        </td></tr>
-                    `;
-                }
+                document.getElementById('trades-table-body').innerHTML = `
+                    <tr><td colspan="10">
+                        <div class="error-message">
+                            <div class="icon">❌</div>
+                            <h4>${error.message === '请求超时' ? '请求超时' : '加载失败'}</h4>
+                            <p>无法获取交易记录</p>
+                            <button class="btn btn-primary" onclick="loadTradesData()">重试</button>
+                        </div>
+                    </td></tr>
+                `;
             } finally {
                 loadingManager.stopLoading('trades-panel');
             }
         }
 
+        async function loadTradeCategories() {
+            try {
+                const data = await dataFetcher.fetchWithTimeout('/api/trades/categories');
+                tradeCategories = data;
+                
+                document.getElementById('total-trades').textContent = data.total_count || 0;
+                document.getElementById('total-amount').textContent = '¥' + (data.total_amount || 0).toLocaleString();
+                document.getElementById('buy-count').textContent = data.by_action?.BUY || 0;
+                document.getElementById('sell-count').textContent = data.by_action?.SELL || 0;
+            } catch (error) {
+                console.error('加载交易分类失败:', error);
+            }
+        }
+
+        function populateStrategySelect() {
+            const select = document.getElementById('strategy-select');
+            const strategies = [...new Set(tradesData.map(t => t.strategy).filter(Boolean))];
+            select.innerHTML = '<option value="">所有策略</option>' + 
+                strategies.map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+
         function filterTrades() {
             const searchTerm = document.getElementById('trade-search').value.toLowerCase();
-            const statusFilter = document.getElementById('trade-status-filter').value;
+            const strategyFilter = document.getElementById('strategy-select').value;
+            const categoryFilter = document.querySelector('.category-tab.active')?.dataset.category || 'all';
 
             return tradesData.filter(trade => {
                 const matchesSearch = !searchTerm || 
                     trade.id?.toLowerCase().includes(searchTerm) ||
                     trade.code?.toLowerCase().includes(searchTerm) ||
                     trade.strategy?.toLowerCase().includes(searchTerm);
-                const matchesStatus = !statusFilter || trade.action === statusFilter;
-                return matchesSearch && matchesStatus;
+                const matchesStrategy = !strategyFilter || trade.strategy === strategyFilter;
+                const matchesCategory = categoryFilter === 'all' || 
+                    trade.action === categoryFilter || 
+                    trade.status === categoryFilter;
+                return matchesSearch && matchesStrategy && matchesCategory;
             });
         }
 
         function renderTradesTable() {
             const filteredData = filterTrades();
-            const totalPages = Math.ceil(filteredData.length / pageSize);
-            const startIndex = (tradesPage - 1) * pageSize;
-            const pageData = filteredData.slice(startIndex, startIndex + pageSize);
-
             const tbody = document.getElementById('trades-table-body');
 
             if (!tbody) return;
 
             if (filteredData.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="8">
+                    <tr><td colspan="10">
                         <div class="empty-state">
                             <div class="icon">📋</div>
                             <h4>暂无交易记录</h4>
@@ -1478,112 +1544,152 @@
                         </div>
                     </td></tr>
                 `;
-                document.getElementById('trades-pagination').innerHTML = '';
                 return;
             }
 
-            tbody.innerHTML = pageData.map((trade, index) => {
-                const id = startIndex + index + 1;
+            tbody.innerHTML = filteredData.map((trade, index) => {
                 const actionClass = trade.action === 'BUY' ? 'badge-success' : 'badge-danger';
                 const actionText = trade.action === 'BUY' ? '买入' : '卖出';
-                const statusBadge = trade.status === 'completed' ? 'badge-success' : trade.status === 'pending' ? 'badge-warning' : 'badge-info';
-                const statusText = trade.status === 'completed' ? '已完成' : trade.status === 'pending' ? '待处理' : '处理中';
+                const statusBadge = trade.status === 'completed' || trade.status === 'filled' ? 'badge-success' : 
+                    trade.status === 'pending' ? 'badge-warning' : 'badge-info';
+                const statusText = trade.status === 'completed' || trade.status === 'filled' ? '已成交' : 
+                    trade.status === 'pending' ? '待处理' : (trade.status || '处理中');
 
                 return `
                     <tr>
-                        <td>#${id.toString().padStart(6, '0')}</td>
-                        <td>${trade.time}</td>
-                        <td>${trade.strategy}</td>
-                        <td>${trade.code}</td>
+                        <td>#${(index + 1).toString().padStart(6, '0')}</td>
+                        <td>${trade.time || trade.timestamp || '-'}</td>
+                        <td>${trade.strategy || '-'}</td>
+                        <td>${trade.code || trade.stock_code || '-'}</td>
                         <td><span class="badge ${actionClass}">${actionText}</span></td>
-                        <td>${(trade.price || 0).toFixed(2)}</td>
-                        <td>${trade.volume || 0}</td>
+                        <td>${(trade.filled_price || trade.price || 0).toFixed(2)}</td>
+                        <td>${trade.filled_volume || trade.volume || 0}</td>
+                        <td>¥${(trade.traded_amount || trade.amount || 0).toLocaleString()}</td>
                         <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                        <td><button class="btn btn-primary btn-small" onclick="showTradeDetail('${trade.order_id || index}')">详情</button></td>
                     </tr>
                 `;
             }).join('');
-
-            renderPagination('trades-pagination', totalPages, tradesPage, (page) => {
-                tradesPage = page;
-                renderTradesTable();
-            });
         }
 
-        async function loadStrategiesData() {
-            if (loadingManager.isLoading('strategies-panel')) return;
-            
-            loadingManager.startLoading('strategies-panel');
+        async function showTradeDetail(orderId) {
+            const modal = document.getElementById('trade-detail-modal');
+            const content = document.getElementById('trade-detail-content');
             
             try {
-                const data = await dataFetcher.fetchWithTimeout('/api/status');
+                const data = await dataFetcher.fetchWithTimeout(`/api/trades/detail/${orderId}`);
                 
-                const streamMessages = [];
-                Object.keys(data.streams || {}).forEach(name => {
-                    const stream = data.streams[name];
-                    if (stream.messages && stream.messages.length > 0) {
-                        stream.messages.forEach(msg => {
-                            const msgData = msg.data || {};
-                            if (msgData.code && msgData.action) {
-                                streamMessages.push({
-                                    id: msgData.id || msg.id || '-',
-                                    code: msgData.code,
-                                    strategy: name,
-                                    stock_code: msgData.stock_code || msgData.code || '-',
-                                    action: msgData.action,
-                                    order_volume: msgData.order_volume || 0,
-                                    position_volume: msgData.position_volume || 0,
-                                    status: msgData.status || 'pending',
-                                    position_price: msgData.position_price || '0.00',
-                                    avg_price: msgData.avg_price || '0.00',
-                                    create_time: msgData.time || msg.timestamp || '-',
-                                    signal_name: msgData.signal_name || '-',
-                                    qmt_status: msgData.qmt_status || '-',
-                                    qmt_order_id: msgData.qmt_order_id || '-',
-                                    qmt_error_msg: msgData.qmt_error_msg || '-'
-                                });
-                            }
-                        });
-                    }
-                });
-                
-                strategiesData = streamMessages;
-                strategiesPage = 1;
-                renderStrategiesTable();
+                if (data.error) {
+                    content.innerHTML = `
+                        <div class="error-message">
+                            <div class="icon">❌</div>
+                            <h4>获取失败</h4>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                } else {
+                    const actionClass = data.action === 'BUY' ? 'badge-success' : 'badge-danger';
+                    const actionText = data.action === 'BUY' ? '买入' : '卖出';
+                    
+                    content.innerHTML = `
+                        <div class="detail-item">
+                            <span class="detail-label">订单ID</span>
+                            <span class="detail-value highlight">${data.order_id || '-'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">时间</span>
+                            <span class="detail-value">${data.timestamp || '-'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">策略</span>
+                            <span class="detail-value">${data.strategy || '-'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">股票代码</span>
+                            <span class="detail-value">${data.stock_code || '-'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">交易方向</span>
+                            <span class="detail-value"><span class="badge ${actionClass}">${actionText}</span></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">委托价格</span>
+                            <span class="detail-value price">¥${(data.price || 0).toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">成交价格</span>
+                            <span class="detail-value price highlight">¥${(data.filled_price || 0).toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">成交数量</span>
+                            <span class="detail-value">${data.filled_volume || data.volume || 0}股</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">成交金额</span>
+                            <span class="detail-value amount">¥${(data.traded_amount || data.amount || 0).toLocaleString()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">手续费</span>
+                            <span class="detail-value">¥${(data.commission || 0).toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">滑点</span>
+                            <span class="detail-value ${(data.slippage || 0) > 0.01 ? 'status-warning' : ''}">${((data.slippage || 0) * 100).toFixed(2)}%</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">订单状态</span>
+                            <span class="detail-value"><span class="badge ${data.status === 'filled' ? 'badge-success' : 'badge-warning'}">${data.status === 'filled' ? '已成交' : data.status || '处理中'}</span></span>
+                        </div>
+                    `;
+                }
             } catch (error) {
-                strategiesData = [];
-                strategiesPage = 1;
-                renderStrategiesTable();
-            } finally {
-                loadingManager.stopLoading('strategies-panel');
+                content.innerHTML = `
+                    <div class="error-message">
+                        <div class="icon">❌</div>
+                        <h4>获取失败</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
             }
+            
+            modal.classList.add('active');
         }
 
-        function filterStrategies() {
-            const searchTerm = document.getElementById('strategy-search').value.toLowerCase();
-            const statusFilter = document.getElementById('strategy-status-filter').value;
+        function closeTradeModal() {
+            document.getElementById('trade-detail-modal').classList.remove('active');
+        }
 
-            return strategiesData.filter(strategy => {
-                const matchesSearch = !searchTerm || 
-                    strategy.code?.toLowerCase().includes(searchTerm) ||
-                    strategy.strategy?.toLowerCase().includes(searchTerm);
-                const matchesStatus = !statusFilter || strategy.action === statusFilter;
-                return matchesSearch && matchesStatus;
+        function loadStrategiesFromStreams(streams) {
+            const streamMessages = [];
+            Object.keys(streams).forEach(name => {
+                const stream = streams[name];
+                if (stream.messages && stream.messages.length > 0) {
+                    stream.messages.forEach(msg => {
+                        const msgData = msg.data || {};
+                        streamMessages.push({
+                            code: msgData.code,
+                            strategy: name,
+                            stock_code: msgData.stock_code,
+                            action: msgData.action,
+                            order_volume: msgData.order_volume,
+                            position_volume: msgData.position_volume,
+                            status: msgData.status,
+                            create_time: msgData.time || msg.timestamp
+                        });
+                    });
+                }
             });
+            strategiesData = streamMessages;
+            renderStrategiesTable();
         }
 
         function renderStrategiesTable() {
-            const filteredData = filterStrategies();
-            const totalPages = Math.ceil(filteredData.length / pageSize);
-            const startIndex = (strategiesPage - 1) * pageSize;
-            const pageData = filteredData.slice(startIndex, startIndex + pageSize);
-
             const tbody = document.getElementById('strategies-table-body');
-
             if (!tbody) return;
 
-            if (filteredData.length === 0) {
+            if (strategiesData.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="11">
+                    <tr><td colspan="9">
                         <div class="empty-state">
                             <div class="icon">⚙️</div>
                             <h4>暂无策略流记录</h4>
@@ -1591,139 +1697,201 @@
                         </div>
                     </td></tr>
                 `;
-                document.getElementById('strategies-pagination').innerHTML = '';
                 return;
             }
 
-            tbody.innerHTML = pageData.map((item, index) => {
-                const rowIndex = startIndex + index + 1;
+            tbody.innerHTML = strategiesData.slice(0, 20).map((item, index) => {
                 const actionBadge = item.action === 'BUY' ? 'badge-success' : 'badge-danger';
-                const actionText = item.action === 'BUY' ? '买入' : '卖出';
+                const actionText = item.action === 'BUY' ? '买入' : item.action === 'SELL' ? '卖出' : item.action || '-';
                 const statusBadge = item.status === 'filled' ? 'badge-success' : item.status === 'pending' ? 'badge-warning' : 'badge-info';
-                const statusText = item.status === 'filled' ? '已成交' : item.status === 'pending' ? '待成交' : '部分成交';
+                const statusText = item.status === 'filled' ? '已成交' : item.status === 'pending' ? '待成交' : item.status || '-';
 
                 return `
                     <tr>
-                        <td>${rowIndex}</td>
-                        <td><span style="color: #64748b;">${item.code}</span></td>
-                        <td><span style="color: #667eea; font-weight: 500;">${item.strategy}</span></td>
-                        <td><span style="color: #3b82f6; font-weight: 500;">${item.stock_code}</span></td>
-                        <td><span class="badge ${actionBadge}">${actionText}</span></td>
-                        <td>${item.order_volume}</td>
-                        <td>${item.position_volume}</td>
-                        <td><span class="badge ${statusBadge}">${statusText}</span></td>
-                        <td>${item.position_price}</td>
-                        <td>${item.avg_price}</td>
-                        <td>${item.create_time}</td>
+                        <td>${index + 1}</td>
+                        <td>${item.code || '-'}</td>
+                        <td>${item.strategy || '-'}</td>
+                        <td>${item.stock_code || '-'}</td>
+                        <td>${item.action ? `<span class="badge ${actionBadge}">${actionText}</span>` : '-'}</td>
+                        <td>${item.order_volume || '-'}</td>
+                        <td>${item.position_volume || '-'}</td>
+                        <td>${item.status ? `<span class="badge ${statusBadge}">${statusText}</span>` : '-'}</td>
+                        <td>${item.create_time || '-'}</td>
                     </tr>
                 `;
             }).join('');
-
-            renderPagination('strategies-pagination', totalPages, strategiesPage, (page) => {
-                strategiesPage = page;
-                renderStrategiesTable();
-            });
         }
 
-        function renderPagination(containerId, totalPages, currentPage, onPageChange) {
-            const container = document.getElementById(containerId);
+        async function loadPerformanceData() {
+            const select = document.getElementById('performance-strategy-select');
+            try {
+                const categories = await dataFetcher.fetchWithTimeout('/api/trades/categories');
+                const strategies = Object.keys(categories.by_strategy || {});
+                select.innerHTML = '<option value="">选择策略</option>' + 
+                    strategies.map(s => `<option value="${s}">${s}</option>`).join('');
+            } catch (error) {
+                console.error('加载策略列表失败:', error);
+            }
+        }
 
-            if (!container || totalPages <= 1) {
-                container.innerHTML = '';
+        document.getElementById('performance-strategy-select').addEventListener('change', async (e) => {
+            const strategyName = e.target.value;
+            if (!strategyName) return;
+
+            try {
+                const data = await dataFetcher.fetchWithTimeout(`/api/performance/${strategyName}`);
+                
+                document.getElementById('perf-total-trades').textContent = data.total_trades || 0;
+                document.getElementById('perf-total-amount').textContent = '¥' + (data.total_amount || 0).toLocaleString();
+                document.getElementById('perf-profit').textContent = '¥' + (data.profit || 0).toLocaleString();
+                
+                const profitRate = (data.profit_rate || 0).toFixed(2);
+                document.getElementById('perf-profit-rate').textContent = profitRate + '%';
+                document.getElementById('perf-profit-rate').className = `stat-value ${parseFloat(profitRate) >= 0 ? 'positive' : 'negative'}`;
+
+                renderPositions(data.positions || {});
+            } catch (error) {
+                console.error('加载收益数据失败:', error);
+            }
+        });
+
+        function renderPositions(positions) {
+            const container = document.getElementById('positions-list');
+            
+            if (Object.keys(positions).length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📊</div>
+                        <h4>暂无持仓</h4>
+                        <p>该策略当前没有持仓</p>
+                    </div>
+                `;
                 return;
             }
 
-            let html = '';
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>股票代码</th>
+                            <th>持仓数量</th>
+                            <th>成本价</th>
+                            <th>现价</th>
+                            <th>盈亏</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(positions).map(([code, pos]) => {
+                            const profit = ((pos.current_price - pos.avg_cost) / pos.avg_cost * 100).toFixed(2);
+                            return `
+                                <tr>
+                                    <td>${code}</td>
+                                    <td>${pos.volume}</td>
+                                    <td>¥${pos.avg_cost.toFixed(2)}</td>
+                                    <td>¥${pos.current_price.toFixed(2)}</td>
+                                    <td class="${parseFloat(profit) >= 0 ? 'status-online' : 'status-offline'}">${profit}%</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
 
-            html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="onPageChange(${currentPage - 1})">上一页</button>`;
+        async function loadTrackingData() {
+            try {
+                const data = await dataFetcher.fetchWithTimeout('/api/message/tracking');
+                
+                document.getElementById('tracking-total').textContent = data.total || 0;
+                document.getElementById('tracking-success').textContent = data.by_status?.success || 0;
+                document.getElementById('tracking-failed').textContent = data.by_status?.failed || 0;
+                document.getElementById('tracking-processing').textContent = data.by_status?.processing || 0;
+                
+                renderTrackingList(data.recent_messages || []);
+            } catch (error) {
+                console.error('加载消息跟踪数据失败:', error);
+            }
+        }
 
-            for (let i = 1; i <= totalPages; i++) {
-                if (i === currentPage) {
-                    html += `<button class="page-btn active">${i}</button>`;
-                } else if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-                    html += `<button class="page-btn" onclick="onPageChange(${i})">${i}</button>`;
-                } else if (i === currentPage - 2 || i === currentPage + 2) {
-                    html += `<span style="padding: 0 8px; color: #94a3b8;">...</span>`;
-                }
+        function renderTrackingList(messages) {
+            const container = document.getElementById('tracking-list');
+            
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📡</div>
+                        <h4>暂无消息跟踪数据</h4>
+                        <p>消息跟踪数据将在此显示</p>
+                    </div>
+                `;
+                return;
             }
 
-            html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="onPageChange(${currentPage + 1})">下一页</button>`;
-
-            container.innerHTML = html;
+            container.innerHTML = messages.map(msg => {
+                const statusClass = msg.status === 'success' ? 'success' : 
+                    msg.status === 'failed' ? 'failed' : 
+                    msg.status === 'processing' ? 'processing' : 'pending';
+                
+                return `
+                    <div class="tracking-item">
+                        <div class="tracking-status ${statusClass}"></div>
+                        <div class="tracking-info">
+                            <div class="tracking-msg-id">${msg.msg_id || '-'}</div>
+                            <div class="tracking-time">${msg.timestamp || '-'}</div>
+                        </div>
+                        <div class="tracking-strategy">${msg.details?.strategy || '-'}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
         document.getElementById('trade-search').addEventListener('input', () => {
-            tradesPage = 1;
             debouncedSearch.trade.execute();
         });
 
-        document.getElementById('trade-status-filter').addEventListener('change', () => {
-            tradesPage = 1;
+        document.getElementById('strategy-select').addEventListener('change', () => {
             debouncedSearch.trade.execute();
         });
 
-        document.getElementById('strategy-search').addEventListener('input', () => {
-            strategiesPage = 1;
-            debouncedSearch.strategy.execute();
-        });
-
-        document.getElementById('strategy-status-filter').addEventListener('change', () => {
-            strategiesPage = 1;
-            debouncedSearch.strategy.execute();
-        });
-
-        document.querySelectorAll('.sortable').forEach(th => {
-            th.addEventListener('click', () => {
-                const sortField = th.dataset.sort;
-                const currentView = document.querySelector('.view-container.active').id;
-
-                if (currentView === 'trades-view') {
-                    tradesData.sort((a, b) => {
-                        const aVal = a[sortField];
-                        const bVal = b[sortField];
-                        if (typeof aVal === 'number' && typeof bVal === 'number') {
-                            return aVal - bVal;
-                        }
-                        return String(aVal).localeCompare(String(bVal));
-                    });
-                    tradesPage = 1;
-                    renderTradesTable();
-                }
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                debouncedSearch.trade.execute();
             });
         });
 
-        async function performInitialLoad() {
-            showUpdateIndicator(true);
-            
-            try {
-                await Promise.all([
-                    updateStatus(),
-                    updateLocalMonitor(),
-                    updateMonitorHistory()
-                ]);
-            } finally {
-                showUpdateIndicator(false);
+        document.getElementById('trade-detail-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('trade-detail-modal')) {
+                closeTradeModal();
+            }
+        });
+
+        let updateInterval;
+
+        function startAutoUpdate() {
+            updateInterval = setInterval(() => {
+                showUpdateIndicator(true);
+                Promise.all([updateStatus(), updateLocalMonitor()]).finally(() => {
+                    showUpdateIndicator(false);
+                });
+            }, 5000);
+        }
+
+        function stopAutoUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
             }
         }
 
-        performInitialLoad();
-
-        let updateInterval = setInterval(() => {
-            showUpdateIndicator(true);
-            
-            Promise.all([
-                updateStatus(),
-                updateLocalMonitor()
-            ]).finally(() => {
-                setTimeout(() => showUpdateIndicator(false), 500);
-            });
-        }, 5000);
-
-        let monitorHistoryInterval = setInterval(updateMonitorHistory, 15000);
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus();
+            updateLocalMonitor();
+            startAutoUpdate();
+        });
 
         window.addEventListener('beforeunload', () => {
-            clearInterval(updateInterval);
-            clearInterval(monitorHistoryInterval);
+            stopAutoUpdate();
         });
     </script>
 </body>

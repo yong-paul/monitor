@@ -3,7 +3,7 @@
 ## 前置条件
 
 1. 已安装 Docker 和 Docker Compose
-2. 云端 Redis 服务已配置好（config.py 中的 REDIS_HOST, REDIS_PORT, REDIS_PASSWORD）
+2. 云端 Redis 服务已配置好（config.py 中的 REDIS\_HOST, REDIS\_PORT, REDIS\_PASSWORD）
 
 ## 快速开始
 
@@ -26,7 +26,7 @@ docker-compose down
 docker-compose restart
 ```
 
-### 方式二：直接使用 Docker
+方式二：直接使用 Docker
 
 ```bash
 # 构建镜像
@@ -54,9 +54,11 @@ docker rm quant-cloud-service
 ### 自动重启策略
 
 在 `docker-compose.yml` 中配置了：
+
 - `restart: unless-stopped` - 容器会自动重启，除非你手动停止
 
 其他可用的重启策略：
+
 - `no` - 不自动重启
 - `always` - 总是自动重启
 - `on-failure` - 只有失败时才重启
@@ -65,6 +67,7 @@ docker rm quant-cloud-service
 ### 端口映射
 
 默认映射 `5000:5000`，如需修改端口，编辑 `docker-compose.yml`：
+
 ```yaml
 ports:
   - "8080:5000"  # 主机8080端口映射到容器5000端口
@@ -73,6 +76,7 @@ ports:
 ### 时区设置
 
 已设置为 Asia/Shanghai，如需修改编辑 `docker-compose.yml`：
+
 ```yaml
 environment:
   - TZ=Asia/Shanghai
@@ -103,3 +107,4 @@ docker-compose up -d --build
 1. 确保 config.py 中的 Redis 配置正确
 2. 如果云端 Redis 需要特殊网络访问，可能需要配置网络
 3. 生产环境建议使用 Gunicorn 或 uWSGI 代替 Flask 开发服务器
+
