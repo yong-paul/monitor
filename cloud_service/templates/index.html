@@ -974,43 +974,6 @@
             color: #9ca3af;
         }
 
-        /* 加载指示器样式 */
-        .loading-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px;
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            font-size: 0.85rem;
-            color: #64748b;
-        }
-
-        .loading-indicator .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #667eea;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .end-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-            background: #f0fdf4;
-            border-top: 1px solid #bbf7d0;
-            font-size: 0.85rem;
-            color: #16a34a;
-        }
-
         /* 消息项包装器 */
         .monitor-history-item-wrapper {
             margin-bottom: 6px;
@@ -1341,9 +1304,6 @@
                     <h3 class="panel-title">策略流列表</h3>
                     <div class="panel-actions">
                         <input type="text" class="search-box" id="strategy-search" placeholder="搜索合约号或策略...">
-                        <select id="strategy-strategy-filter" class="search-box" style="min-width: 150px;">
-                            <option value="">全部策略</option>
-                        </select>
                         <select id="strategy-status-filter" class="search-box" style="min-width: 120px;">
                             <option value="">全部状态</option>
                             <option value="BUY">买入</option>
@@ -1378,13 +1338,6 @@
                             </tr>
                         </tbody>
                     </table>
-                    <div id="strategies-loading-indicator" class="loading-indicator" style="display: none;">
-                        <span class="spinner"></span>
-                        <span>加载更多数据...</span>
-                    </div>
-                    <div id="strategies-end-indicator" class="end-indicator" style="display: none;">
-                        <span>已加载全部 ${strategiesTotal} 条记录</span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1651,11 +1604,7 @@
                 updateMetricValue('redis-response', responseTime + 'ms');
                 document.getElementById('last-update').textContent = '最后更新: ' + (data.last_update || new Date().toLocaleString());
 
-                // 初始化策略流列表
-                loadStrategyFlows(0, true);
-                loadStrategyFlowsList();
-                setupStrategyFlowsScroll();
-                setupStrategyFlowsFilters();
+                loadStrategiesFromStreams(data.streams || {});
             } catch (error) {
                 document.getElementById('redis-status-dot').className = 'status-dot offline';
                 document.getElementById('redis-status-text').textContent = error.message === '请求超时' ? '连接超时' : '连接失败';
@@ -1945,94 +1894,28 @@
             document.getElementById('trade-detail-modal').classList.remove('active');
         }
 
-        // 策略流列表状态管理
-        let strategiesData = [];
-        let strategiesTotal = 0;
-        let strategiesCurrentPage = 0;
-        let strategiesLimit = 20;
-        let strategiesHasMore = false;
-        let strategiesLoading = false;
-        let strategiesSearchQuery = '';
-        let strategiesActionFilter = '';
-        let strategiesStrategyFilter = '';
-
-        async function loadStrategyFlows(page = 0, reset = false) {
-            if (strategiesLoading) return;
-            strategiesLoading = true;
-
-            const tbody = document.getElementById('strategies-table-body');
-            const loadingIndicator = document.getElementById('strategies-loading-indicator');
-            
-            if (reset) {
-                strategiesCurrentPage = 0;
-                strategiesData = [];
-            }
-
-            try {
-                const params = new URLSearchParams({
-                    page: page,
-                    limit: strategiesLimit,
-                    search: strategiesSearchQuery,
-                    action: strategiesActionFilter,
-                    strategy: strategiesStrategyFilter
-                });
-
-                const response = await dataFetcher.fetchWithTimeout(`/api/strategy-flows?${params}`);
-                
-                if (response.error) {
-                    if (strategiesData.length === 0) {
-                        tbody.innerHTML = `
-                            <tr><td colspan="9">
-                                <div class="empty-state">
-                                    <div class="icon">❌</div>
-                                    <h4>加载失败</h4>
-                                    <p>${response.error}</p>
-                                    <button class="btn btn-primary" onclick="loadStrategyFlows(0, true)">重试</button>
-                                </div>
-                            </td></tr>
-                        `;
-                    }
-                    return;
+        function loadStrategiesFromStreams(streams) {
+            const streamMessages = [];
+            Object.keys(streams).forEach(name => {
+                const stream = streams[name];
+                if (stream.messages && stream.messages.length > 0) {
+                    stream.messages.forEach(msg => {
+                        const msgData = msg.data || {};
+                        streamMessages.push({
+                            code: msgData.code,
+                            strategy: name,
+                            stock_code: msgData.stock_code,
+                            action: msgData.action,
+                            order_volume: msgData.order_volume,
+                            position_volume: msgData.position_volume,
+                            status: msgData.status,
+                            create_time: msgData.time || msg.timestamp
+                        });
+                    });
                 }
-
-                if (reset) {
-                    strategiesData = response.data || [];
-                } else {
-                    strategiesData = strategiesData.concat(response.data || []);
-                }
-                
-                strategiesTotal = response.total || 0;
-                strategiesCurrentPage = response.page || 0;
-                strategiesHasMore = response.has_more || false;
-                
-                renderStrategiesTable();
-                
-                // 更新加载状态
-                const endIndicator = document.getElementById('strategies-end-indicator');
-                if (loadingIndicator) {
-                    loadingIndicator.style.display = strategiesHasMore ? 'block' : 'none';
-                }
-                if (endIndicator) {
-                    endIndicator.style.display = strategiesHasMore ? 'none' : 'block';
-                    endIndicator.innerHTML = `<span>已加载全部 ${strategiesTotal} 条记录</span>`;
-                }
-            } catch (error) {
-                console.error('加载策略流失败:', error);
-                if (strategiesData.length === 0) {
-                    tbody.innerHTML = `
-                        <tr><td colspan="9">
-                            <div class="empty-state">
-                                <div class="icon">❌</div>
-                                <h4>${error.message === '请求超时' ? '请求超时' : '加载失败'}</h4>
-                                <p>无法获取策略流数据</p>
-                                <button class="btn btn-primary" onclick="loadStrategyFlows(0, true)">重试</button>
-                            </div>
-                        </td></tr>
-                    `;
-                }
-            } finally {
-                strategiesLoading = false;
-            }
+            });
+            strategiesData = streamMessages;
+            renderStrategiesTable();
         }
 
         function renderStrategiesTable() {
@@ -2052,7 +1935,7 @@
                 return;
             }
 
-            tbody.innerHTML = strategiesData.map((item, index) => {
+            tbody.innerHTML = strategiesData.slice(0, 20).map((item, index) => {
                 const actionBadge = item.action === 'BUY' ? 'badge-success' : 'badge-danger';
                 const actionText = item.action === 'BUY' ? '买入' : item.action === 'SELL' ? '卖出' : item.action || '-';
                 const statusBadge = item.status === 'filled' ? 'badge-success' : item.status === 'pending' ? 'badge-warning' : 'badge-info';
@@ -2072,54 +1955,6 @@
                     </tr>
                 `;
             }).join('');
-        }
-
-        async function loadStrategyFlowsList() {
-            try {
-                const strategies = await dataFetcher.fetchWithTimeout('/api/strategy-flows/list');
-                const select = document.getElementById('strategy-strategy-filter');
-                if (select && strategies && !strategies.error) {
-                    select.innerHTML = '<option value="">全部策略</option>' +
-                        strategies.map(s => `<option value="${s}">${s}</option>`).join('');
-                }
-            } catch (error) {
-                console.error('加载策略列表失败:', error);
-            }
-        }
-
-        function setupStrategyFlowsScroll() {
-            const tableContainer = document.querySelector('.table-container');
-            if (!tableContainer) return;
-
-            tableContainer.addEventListener('scroll', () => {
-                const { scrollTop, scrollHeight, clientHeight } = tableContainer;
-                if (scrollHeight - scrollTop - clientHeight < 100 && strategiesHasMore && !strategiesLoading) {
-                    loadStrategyFlows(strategiesCurrentPage + 1, false);
-                }
-            });
-        }
-
-        function setupStrategyFlowsFilters() {
-            // 搜索框
-            const searchBox = document.getElementById('strategy-search');
-            searchBox?.addEventListener('input', (e) => {
-                strategiesSearchQuery = e.target.value;
-                loadStrategyFlows(0, true);
-            });
-
-            // 操作类型筛选
-            const actionFilter = document.getElementById('strategy-status-filter');
-            actionFilter?.addEventListener('change', (e) => {
-                strategiesActionFilter = e.target.value;
-                loadStrategyFlows(0, true);
-            });
-
-            // 策略名称筛选
-            const strategyFilter = document.getElementById('strategy-strategy-filter');
-            strategyFilter?.addEventListener('change', (e) => {
-                strategiesStrategyFilter = e.target.value;
-                loadStrategyFlows(0, true);
-            });
         }
 
         async function loadPerformanceData() {
