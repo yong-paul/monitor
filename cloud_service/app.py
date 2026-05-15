@@ -459,6 +459,10 @@ def api_monitor_history():
     获取监控消息历史API
     
     返回最近的监控消息记录，包括系统状态变化、连接状态等。
+    
+    支持两种数据格式：
+    1. monitor_service上报格式: {'timestamp': '...', 'data': 'JSON字符串'}
+    2. 通用消息格式: {'timestamp': '...', 'type': '...', 'title': '...', 'message': '...', 'details': {...}}
     """
     r = get_redis_client()
     if not r:
@@ -473,22 +477,39 @@ def api_monitor_history():
             if not isinstance(data, dict):
                 data = {}
             
-            # 处理details字段的解析
-            details = {}
-            if data.get('details'):
+            # 解析monitor_service上报的数据格式
+            # monitor_service的格式: {'timestamp': '...', 'data': 'JSON字符串'}
+            if 'data' in data and data.get('data'):
                 try:
-                    details = json.loads(data.get('details'))
-                except (json.JSONDecodeError, TypeError):
-                    details = {'raw': str(data.get('details'))}
-            
-            history.append({
-                'id': msg_id,
-                'timestamp': data.get('timestamp', ''),
-                'type': data.get('type', 'info'),
-                'title': data.get('title', ''),
-                'message': data.get('message', ''),
-                'details': details
-            })
+                    parsed_data = json.loads(data.get('data'))
+                    history.append(parse_monitor_status(msg_id, data.get('timestamp'), parsed_data))
+                except (json.JSONDecodeError, TypeError) as e:
+                    # 解析失败，尝试其他格式
+                    history.append({
+                        'id': msg_id,
+                        'timestamp': data.get('timestamp', ''),
+                        'type': 'error',
+                        'title': '数据解析失败',
+                        'message': f'无法解析消息内容: {str(e)}',
+                        'details': {'raw_data': str(data.get('data', '')[:500])}
+                    })
+            else:
+                # 通用消息格式
+                details = {}
+                if data.get('details'):
+                    try:
+                        details = json.loads(data.get('details'))
+                    except (json.JSONDecodeError, TypeError):
+                        details = {'raw': str(data.get('details'))}
+                
+                history.append({
+                    'id': msg_id,
+                    'timestamp': data.get('timestamp', ''),
+                    'type': data.get('type', 'info'),
+                    'title': data.get('title', ''),
+                    'message': data.get('message', ''),
+                    'details': details
+                })
         
         # 如果没有监控历史记录，返回模拟数据以便测试
         if not history:
@@ -497,6 +518,92 @@ def api_monitor_history():
         return jsonify(history)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+def parse_monitor_status(msg_id, timestamp, status_data):
+    """
+    解析monitor_service上报的监控状态数据，转换为前端展示格式
+    
+    :param msg_id: 消息ID
+    :param timestamp: 时间戳
+    :param status_data: 监控状态数据
+    :return: 格式化后的消息对象
+    """
+    # 分析系统状态，生成相应的消息
+    issues = []
+    status_details = {}
+    
+    # 检查Redis状态
+    redis_local = status_data.get('redis_local', {})
+    redis_cloud = status_data.get('redis_cloud', {})
+    
+    if not redis_local.get('connected'):
+        issues.append(f"本地Redis: {redis_local.get('message', '连接失败')}")
+    if not redis_cloud.get('connected'):
+        issues.append(f"云端Redis: {redis_cloud.get('message', '连接失败')}")
+    
+    # 检查进程状态
+    signal_receiver = status_data.get('signal_receiver', {})
+    miniqmt = status_data.get('miniqmt', {})
+    
+    if not signal_receiver.get('running'):
+        issues.append(f"信号接收进程: {signal_receiver.get('message', '未运行')}")
+    if not miniqmt.get('running'):
+        issues.append(f"MiniQMT: {miniqmt.get('message', '未运行')}")
+    
+    # 获取系统资源信息
+    system = status_data.get('system', {})
+    
+    # 构建详情信息
+    status_details = {
+        'redis_local': {
+            'connected': redis_local.get('connected'),
+            'message': redis_local.get('message')
+        },
+        'redis_cloud': {
+            'connected': redis_cloud.get('connected'),
+            'message': redis_cloud.get('message')
+        },
+        'signal_receiver': {
+            'running': signal_receiver.get('running'),
+            'pid': signal_receiver.get('pid'),
+            'message': signal_receiver.get('message')
+        },
+        'miniqmt': {
+            'running': miniqmt.get('running'),
+            'pid': miniqmt.get('pid'),
+            'message': miniqmt.get('message')
+        },
+        'system': {
+            'cpu_percent': system.get('cpu_percent'),
+            'memory_percent': system.get('memory_percent'),
+            'disk_percent': system.get('disk_percent')
+        }
+    }
+    
+    # 根据问题严重程度确定消息类型
+    if issues:
+        if any('连接失败' in issue or '未运行' in issue for issue in issues):
+            msg_type = 'error'
+            title = '系统异常'
+            message = ' | '.join(issues)
+        else:
+            msg_type = 'warning'
+            title = '系统警告'
+            message = ' | '.join(issues)
+    else:
+        msg_type = 'success'
+        title = '系统正常'
+        message = '所有服务运行正常'
+    
+    return {
+        'id': msg_id,
+        'timestamp': timestamp,
+        'type': msg_type,
+        'title': title,
+        'message': message,
+        'details': status_details
+    }
 
 
 def get_mock_monitor_history():
